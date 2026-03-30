@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { Book } from "lucide-react-native";
 
-type TabRoutes = "chats";
+type TabRoutes = "index" | "chats/index";
 
 interface TabConfig {
   name: TabRoutes;
@@ -10,7 +10,8 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { name: "chats", title: "Chats", icon: Book },
+  { name: "index", title: "Home", icon: Book },
+  { name: "chats/index", title: "Chats", icon: Book },
 ];
 
 export default function TabLayout() {
