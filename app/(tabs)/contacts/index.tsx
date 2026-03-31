@@ -10,16 +10,16 @@ import { THEME } from "@/src/shared/lib/theme";
 import { contacts } from "@/src/shared/data/contacts";
 import type { IContactItem } from "@/src/shared/types/contacts";
 import { ContactItem } from "@/src/features/contacts/components/ContactItem";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ContactScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View>
             <Text style={styles.title}>Contacts</Text>
-            <Text style={styles.subtitle}>3 contacts</Text>
           </View>
         </View>
 
@@ -36,7 +36,7 @@ export default function ContactScreen() {
         renderItem={({ item }) => <ContactItem {...item} />}
         contentContainerStyle={{ paddingBottom: 100 }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -49,6 +49,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
+    backgroundColor: THEME.colors.secondary,
     padding: 16,
   },
 

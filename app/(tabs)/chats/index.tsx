@@ -10,10 +10,11 @@ import { THEME } from "@/src/shared/lib/theme";
 import { ChatItem } from "@/src/features/chats/components/ChatItem";
 import type { IChatItem } from "@/src/shared/types/chats"
 import { chats } from "@/src/shared/data/chats";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ChatScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.title}>Anteny App</Text>
@@ -45,7 +46,7 @@ export default function ChatScreen() {
       <TouchableOpacity style={styles.fab}>
         <Ionicons name="chatbubble" size={24} color="#002109" />
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -58,6 +59,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
+    backgroundColor: THEME.colors.secondary,
     padding: 16,
   },
 
