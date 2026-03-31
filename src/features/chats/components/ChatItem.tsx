@@ -1,11 +1,12 @@
 import { THEME } from "@/src/shared/lib/theme";
 import type { IChatItem } from "@/src/shared/types/chats";
+import { router } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 
 export const ChatItem = ({ avatar, name, message, time, unread, online }: IChatItem) => {
   return (
     <>
-      <TouchableOpacity style={styles.chatItem}>
+      <TouchableOpacity style={styles.chatItem} onPress={() => router.push("/123")}>
         <View>
           <Image source={{ uri: avatar }} style={styles.avatar} />
           {online && <View style={styles.onlineDot} />}

@@ -4,7 +4,7 @@ export const THEME = {
     surface: '#0F1724',
     card: '#0F1724',
     primary: '#2ab184ff',
-    secondary: '#7C3AED',
+    secondary: '#111111',
     accent: '#00D4FF',
     text_title: '#ffffff',
     text_opacity: '#bbcbb9',

@@ -3,7 +3,7 @@ import { IContactItem } from "../types/contacts";
 export const contacts: IContactItem[] = [
   { id: "a", type: "action", title: "New group", icon: "people" },
   { id: "b", type: "action", title: "New contact", icon: "person-add" },
-  { id: "header1", type: "header", title: "Your Contacts" },
+  { id: "header1", type: "header", title: "Your Contacts (3)" },
   {
     id: "1",
     name: "Aria Sterling",
