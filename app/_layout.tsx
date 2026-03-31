@@ -1,4 +1,6 @@
 import { Stack } from 'expo-router';
+import { StatusBar } from 'react-native';
+import { THEME } from '../src/shared/lib/theme';
 
 type RootRoutes = "(tabs)";
 
@@ -18,24 +20,22 @@ const ROOT_STACK: StackConfig[] = [
 
 export default function RootLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: { backgroundColor: '#000' },
-        headerTintColor: '#fff',
-        contentStyle: { backgroundColor: '#000' },
-      }}
-    >
-      {ROOT_STACK.map((route) => (
-        <Stack.Screen
-          key={route.name}
-          name={route.name}
-          options={{
-            headerShown: route.headerShown,
-            title: route.title,
-            presentation: route.presentation,
-          }}
-        />
-      ))}
-    </Stack>
+    <>
+      <StatusBar backgroundColor={THEME.colors.background} translucent={false} />
+      <Stack
+      >
+        {ROOT_STACK.map((route) => (
+          <Stack.Screen
+            key={route.name}
+            name={route.name}
+            options={{
+              headerShown: route.headerShown,
+              title: route.title,
+              presentation: route.presentation,
+            }}
+          />
+        ))}
+      </Stack>
+    </>
   );
 }
