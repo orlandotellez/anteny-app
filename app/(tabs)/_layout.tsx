@@ -1,8 +1,8 @@
 import { Tabs } from "expo-router";
-import { MessageCircle, Book } from "lucide-react-native";
+import { MessageCircle, Book, Contact } from "lucide-react-native";
 import { THEME } from "@/src/shared/lib/theme";
 
-type TabRoutes = "chats/index";
+type TabRoutes = "chats/index" | "contacts/index";
 
 interface TabConfig {
   name: TabRoutes;
@@ -12,6 +12,7 @@ interface TabConfig {
 
 const TABS: TabConfig[] = [
   { name: "chats/index", title: "Chats", icon: MessageCircle },
+  { name: "contacts/index", title: "Contacts", icon: Contact },
 ];
 
 export default function TabLayout() {
