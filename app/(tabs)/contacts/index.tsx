@@ -11,6 +11,7 @@ import { contacts } from "@/src/shared/data/contacts";
 import type { IContactItem } from "@/src/shared/types/contacts";
 import { ContactItem } from "@/src/features/contacts/components/ContactItem";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ActionsButtons } from "@/src/features/contacts/components/ActionsButtons";
 
 export default function ContactScreen() {
   return (
@@ -28,6 +29,8 @@ export default function ContactScreen() {
           <MaterialIcons name="more-vert" size={22} color={THEME.colors.text_opacity} />
         </View>
       </View>
+
+      <ActionsButtons />
 
       {/* LIST */}
       <FlatList<IContactItem>

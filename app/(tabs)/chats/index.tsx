@@ -36,7 +36,8 @@ export default function ChatScreen() {
             message={item.message}
             time={item.time}
             unread={item.unread}
-            online={item.online}
+            status={item.status}
+            isOnline={item.isOnline}
           />
         )}
         contentContainerStyle={{ paddingBottom: 100 }}

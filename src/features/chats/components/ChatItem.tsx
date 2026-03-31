@@ -3,13 +3,13 @@ import type { IChatItem } from "@/src/shared/types/chats";
 import { router } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 
-export const ChatItem = ({ avatar, name, message, time, unread, online }: IChatItem) => {
+export const ChatItem = ({ id, avatar, name, message, time, unread, isOnline }: IChatItem) => {
   return (
     <>
-      <TouchableOpacity style={styles.chatItem} onPress={() => router.push("/123")}>
+      <TouchableOpacity style={styles.chatItem} onPress={() => router.push(`/${id}`)}>
         <View>
           <Image source={{ uri: avatar }} style={styles.avatar} />
-          {online && <View style={styles.onlineDot} />}
+          {isOnline && <View style={styles.onlineDot} />}
         </View>
 
         <View style={styles.chatContent}>
@@ -30,11 +30,11 @@ export const ChatItem = ({ avatar, name, message, time, unread, online }: IChatI
               {message}
             </Text>
 
-            {unread && (
+            {unread ? (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{unread}</Text>
               </View>
-            )}
+            ) : null}
           </View>
         </View>
       </TouchableOpacity>

@@ -12,9 +12,21 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { THEME } from "@/src/shared/lib/theme";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { users } from "@/src/shared/data/users";
 
 export default function ChatScreen() {
+  const { chatId } = useLocalSearchParams<{ chatId: string }>();
+  const user = users.find((u) => u.id === chatId);
+
+  if (!user) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.name}>Chat not found</Text>
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -29,21 +41,21 @@ export default function ChatScreen() {
           </TouchableOpacity>
 
           <View style={styles.userInfo}>
-            <Image
-              source={{
-                uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuB3WDhBRfn16dcxEmb3iT6FYZ37PoiklnHXa4QJ8o5-cVxo8ndtNvIYedZqoIJvmUs6PsMf6Ol9TR1p9BLRVy8rRFL8zTPHH4Ralw7s58pUyMtCxVLAOFoib8o0PHLRyl34uAxixY_q_NrsEOUNiVhWL4qfi_2RNgGjoDh1oGJjjDbLO5tkJScEOnuOauW2LyOEKj4knuz6lozP8X-GwLy2x81NbbU84bBW5rCjGgHWZm2dD278dJnGQ40myp2hxdK5zDTxi1rUT7U",
-              }}
-              style={styles.avatar}
-            />
+            {user.avatar ? (
+              <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                <Ionicons name="person" size={20} color={THEME.colors.text_opacity} />
+              </View>
+            )}
             <View>
-              <Text style={styles.name}>Alex Rivera</Text>
-              <Text style={styles.status}>online</Text>
+              <Text style={styles.name}>{user.name}</Text>
+              <Text style={styles.status}>{user.isOnline ? "online" : user.status}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.headerRight}>
-          <Ionicons name="videocam-outline" size={22} color={THEME.colors.text_opacity} />
           <Ionicons name="call-outline" size={22} color={THEME.colors.text_opacity} />
           <MaterialIcons name="more-vert" size={22} color={THEME.colors.text_opacity} />
         </View>
@@ -157,6 +169,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+  },
+  avatarPlaceholder: {
+    backgroundColor: "#2a2a2a",
+    justifyContent: "center",
+    alignItems: "center",
   },
   name: {
     color: THEME.colors.text_title,
