@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { StatusBar } from 'react-native';
+import { StatusBar, View } from 'react-native';
 import { THEME } from '@/src/shared/lib/theme';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -28,25 +28,32 @@ export default function RootLayout() {
   return (
     <>
       <SafeAreaProvider>
-        <StatusBar backgroundColor={THEME.colors.secondary} translucent={false} />
-        <Stack
-        >
-          {ROOT_STACK.map((route) => (
-            <Stack.Screen
-              key={route.name}
-              name={route.name}
-              options={{
-                headerShown: route.headerShown,
-                title: route.title,
-                presentation: route.presentation,
-                contentStyle: {
-                  backgroundColor: THEME.colors.secondary
-                },
-                animation: "none"
-              }}
-            />
-          ))}
-        </Stack>
+        <View style={{ flex: 1, backgroundColor: THEME.colors.secondary }}>
+          <StatusBar backgroundColor={THEME.colors.secondary} translucent={false} />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: {
+                backgroundColor: THEME.colors.secondary,
+              },
+              animation: "none",
+            }
+            }
+          >
+            {ROOT_STACK.map((route) => (
+              <Stack.Screen
+                key={route.name}
+                name={route.name}
+                options={{
+                  headerShown: route.headerShown,
+                  title: route.title,
+                  presentation: route.presentation,
+                }}
+              />
+            ))}
+          </Stack>
+
+        </View>
       </SafeAreaProvider>
     </>
   );
