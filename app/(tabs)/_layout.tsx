@@ -1,7 +1,8 @@
 import { Tabs } from "expo-router";
-import { Book } from "lucide-react-native";
+import { MessageCircle, Book } from "lucide-react-native";
+import { THEME } from "@/src/shared/lib/theme";
 
-type TabRoutes = "index" | "chats/index";
+type TabRoutes = "chats/index";
 
 interface TabConfig {
   name: TabRoutes;
@@ -10,17 +11,16 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { name: "index", title: "Home", icon: Book },
-  { name: "chats/index", title: "Chats", icon: Book },
+  { name: "chats/index", title: "Chats", icon: MessageCircle },
 ];
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: true,
-        tabBarStyle: { backgroundColor: '#000' },
-        tabBarActiveTintColor: '#fff',
+        headerShown: false,
+        tabBarStyle: { backgroundColor: THEME.colors.background, borderTopColor: THEME.colors.background },
+        tabBarActiveTintColor: THEME.colors.text_title,
       }}
     >
       {TABS.map((tab) => (

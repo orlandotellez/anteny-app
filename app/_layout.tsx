@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'react-native';
-import { THEME } from '../src/shared/lib/theme';
+import { THEME } from '@/src/shared/lib/theme';
 
 type RootRoutes = "(tabs)";
 
