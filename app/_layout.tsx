@@ -41,7 +41,8 @@ export default function RootLayout() {
                 presentation: route.presentation,
                 contentStyle: {
                   backgroundColor: THEME.colors.secondary
-                }
+                },
+                animation: "none"
               }}
             />
           ))}
