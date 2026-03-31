@@ -1,4 +1,6 @@
-export const chats = [
+import { IChatItem } from "../types/chats";
+
+export const chats: IChatItem[] = [
   {
     id: "1",
     name: "Alex Rivera",
