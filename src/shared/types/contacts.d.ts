@@ -1,3 +1,5 @@
+import { IUser } from "./user";
+
 export type IContactItem =
   | ActionItem
   | HeaderItem
@@ -8,25 +10,14 @@ export interface BaseItem {
   id: string;
 }
 
-export interface ActionItem extends BaseItem {
+export interface PersonItem extends BaseItem, IUser {
+  type?: "person";
+}
+
+export interface ActionItem {
+  id: string
   type: "action";
   title: string;
-  icon: string;
+  icon: any;
 }
 
-export interface HeaderItem extends BaseItem {
-  type: "header";
-  title: string;
-}
-
-export interface LetterItem extends BaseItem {
-  type: "letter";
-  title: string;
-}
-
-export interface PersonItem extends BaseItem {
-  type?: "person";
-  name: string;
-  status: string;
-  avatar?: string;
-}

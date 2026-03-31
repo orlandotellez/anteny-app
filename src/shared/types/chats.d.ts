@@ -1,9 +1,7 @@
-export interface IChatItem {
-  id: string
-  avatar: string
-  name: string
-  message: string
-  time: string
-  unread?: number
-  online?: boolean
+import { IUser } from "./user";
+
+export interface IChatItem extends IUser {
+  message: string;
+  time: string;
+  unread?: number;
 }
