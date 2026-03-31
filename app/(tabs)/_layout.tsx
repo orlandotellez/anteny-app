@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { MessageCircle, Book, Contact } from "lucide-react-native";
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { THEME } from "@/src/shared/lib/theme";
 
 type TabRoutes = "chats/index" | "contacts/index";
@@ -7,12 +7,12 @@ type TabRoutes = "chats/index" | "contacts/index";
 interface TabConfig {
   name: TabRoutes;
   title: string;
-  icon: typeof Book;
+  icon: any;
 }
 
 const TABS: TabConfig[] = [
-  { name: "chats/index", title: "Chats", icon: MessageCircle },
-  { name: "contacts/index", title: "Contacts", icon: Contact },
+  { name: "chats/index", title: "Chats", icon: "chatbubble-outline" },
+  { name: "contacts/index", title: "Contacts", icon: "people-outline" },
 ];
 
 export default function TabLayout() {
@@ -31,7 +31,7 @@ export default function TabLayout() {
           options={{
             title: tab.title,
             tabBarIcon: ({ color, size }) => (
-              <tab.icon color={color} size={size} />
+              <Ionicons name={tab.icon} size={size} color={color} />
             ),
           }}
         />
