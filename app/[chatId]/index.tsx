@@ -13,6 +13,7 @@ import { users } from "@/src/shared/data/users";
 import { Header } from "@/src/features/[chatId]/components/Header";
 import { Input } from "@/src/features/[chatId]/components/Input";
 import { Conversation } from "@/src/features/[chatId]/components/Conversation";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ChatScreen() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();
@@ -27,28 +28,33 @@ export default function ChatScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={90}
-    >
-      {/* HEADER */}
-      <Header
-        id={user.id}
-        avatar={user.avatar}
-        name={user.name}
-        isOnline={user.isOnline}
-        status={user.status}
-      />
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={90}
+      >
+        {/* HEADER */}
+        <Header
+          id={user.id}
+          avatar={user.avatar}
+          name={user.name}
+          isOnline={user.isOnline}
+          status={user.status}
+        />
 
-      {/* CHAT */}
-      <ScrollView contentContainerStyle={styles.chatContainer}>
-        <Conversation />
-      </ScrollView>
 
-      {/* INPUT */}
-      <Input />
-    </KeyboardAvoidingView>
+        {/* CHAT */}
+        <View style={{ flex: 1 }}>
+          <ScrollView contentContainerStyle={styles.chatContainer}>
+            <Conversation />
+          </ScrollView>
+        </View>
+
+        {/* INPUT */}
+        <Input />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
