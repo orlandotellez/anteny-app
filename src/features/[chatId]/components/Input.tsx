@@ -40,16 +40,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     gap: 8,
+    backgroundColor: THEME.colors.secondary
   },
 
   inputContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#0e0e0e",
+    backgroundColor: THEME.colors.background,
     borderRadius: 30,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     gap: 10,
   },
 
