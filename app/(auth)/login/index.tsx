@@ -5,88 +5,99 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { THEME } from "@/src/shared/lib/theme";
 import { Link } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1, width: "100%" }}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Decorative background glows */}
+          <View style={styles.glowTop} />
+          <View style={styles.glowBottom} />
 
-      {/* Decorative background glows */}
-      <View style={styles.glowTop} />
-      <View style={styles.glowBottom} />
+          <View style={styles.content}>
+            {/* HEADER */}
+            <View style={styles.header}>
+              <View style={styles.iconContainer}>
+                <View style={styles.iconGlow} />
+                <Ionicons name="chatbubble" size={64} color={THEME.colors.primary} />
+              </View>
 
-      <View style={styles.content}>
-        {/* HEADER */}
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <View style={styles.iconGlow} />
-            <Ionicons name="chatbubble" size={64} color={THEME.colors.primary} />
+              <Text style={styles.title}>Welcome back</Text>
+              <Text style={styles.subtitle}>
+                Please enter your details to continue
+              </Text>
+            </View>
+
+            {/* FORM */}
+            <View style={styles.form}>
+              {/* Password */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Email</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="example@example.com"
+                  placeholderTextColor={THEME.colors.text_opacity}
+                  value={email}
+                  onChangeText={setEmail}
+                />
+              </View>
+
+              {/* Password */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Password</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="••••••••"
+                  placeholderTextColor={THEME.colors.text_opacity}
+                  secureTextEntry
+                />
+              </View>
+
+              {/* Button */}
+              <TouchableOpacity style={styles.button}>
+                <Text style={styles.buttonText}>Next</Text>
+                <MaterialIcons name="arrow-forward" size={20} color={THEME.colors.surface} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Not Account */}
+            <View style={styles.notAccount}>
+              <Text style={styles.textNotAccount}>
+                Don't have an account?
+              </Text>
+              <Link href={"/register"} style={styles.registerHere}>
+                Register here
+              </Link>
+
+            </View>
+
+            {/* Footer */}
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                By clicking Next, you agree to the Terms of Service and Privacy Policy.
+              </Text>
+            </View>
           </View>
-
-          <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.subtitle}>
-            Please enter your details to continue
-          </Text>
-        </View>
-
-        {/* FORM */}
-        <View style={styles.form}>
-          {/* Password */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="example@example.com"
-              placeholderTextColor={THEME.colors.text_opacity}
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
-
-          {/* Password */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              placeholderTextColor={THEME.colors.text_opacity}
-              secureTextEntry
-            />
-          </View>
-
-          {/* Button */}
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Next</Text>
-            <MaterialIcons name="arrow-forward" size={20} color={THEME.colors.surface} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Not Account */}
-        <View style={styles.notAccount}>
-          <Text style={styles.textNotAccount}>
-            Don't have an account?
-          </Text>
-          <Link href={"/register"} style={styles.registerHere}>
-            Register here
-          </Link>
-
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            By clicking Next, you agree to the Terms of Service and Privacy Policy.
-          </Text>
-        </View>
-      </View>
-    </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -96,7 +107,10 @@ const styles = StyleSheet.create({
     backgroundColor: THEME.colors.background,
     alignItems: "center",
   },
-
+  scroll: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
   content: {
     flex: 1,
     width: "100%",

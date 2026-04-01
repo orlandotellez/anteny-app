@@ -3,7 +3,7 @@ import { StatusBar, View } from 'react-native';
 import { THEME } from '@/src/shared/lib/theme';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-type RootRoutes = "(tabs)" | "[chatId]";
+type RootRoutes = "(tabs)" | "[chatId]" | "(auth)";
 
 interface StackConfig {
   name: RootRoutes;
@@ -21,7 +21,10 @@ const ROOT_STACK: StackConfig[] = [
     name: "[chatId]",
     headerShown: false
   },
-
+  {
+    name: "(auth)",
+    headerShown: false
+  },
 ];
 
 export default function RootLayout() {
@@ -52,7 +55,6 @@ export default function RootLayout() {
               />
             ))}
           </Stack>
-
         </View>
       </SafeAreaProvider>
     </>
