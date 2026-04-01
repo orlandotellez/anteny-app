@@ -2,6 +2,8 @@ import React from "react";
 import {
   StyleSheet,
   FlatList,
+  View,
+  ScrollView,
 } from "react-native";
 import { THEME } from "@/src/shared/lib/theme";
 import { contacts } from "@/src/shared/data/contacts";
@@ -10,7 +12,7 @@ import { ContactItem } from "@/src/features/contacts/components/ContactItem";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/src/features/contacts/components/Header";
 import { router } from "expo-router";
-import { ActionButton } from "@/src/features/profile/components/ActionButton";
+import { ActionButton } from "@/src/features/contacts/components/ActionButton";
 
 const actions: ActionItem[] = [
   { id: "a", type: "action", action: () => router.push("/contacts/new-group"), title: "New group", icon: "people" },
@@ -23,26 +25,28 @@ export default function ContactScreen() {
       {/* HEADER */}
       <Header />
 
-      {/* ACTIONS BUTTONS */}
-      {
-        actions.map((action) => (
-          <ActionButton
-            id={action.id}
-            type={action.type}
-            action={action.action}
-            title={action.title}
-            icon={action.icon}
-          />
-        ))
-      }
+      <ScrollView>
+        {/* ACTIONS BUTTONS */}
+        {
+          actions.map((action) => (
+            <ActionButton
+              id={action.id}
+              type={action.type}
+              action={action.action}
+              title={action.title}
+              icon={action.icon}
+            />
+          ))
+        }
 
-      {/* LIST */}
-      <FlatList<IContactItem>
-        data={contacts}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <ContactItem {...item} />}
-        contentContainerStyle={{ paddingBottom: 100 }}
-      />
+        {/* LIST */}
+        <FlatList<IContactItem>
+          data={contacts}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <ContactItem {...item} />}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 }
