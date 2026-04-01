@@ -31,6 +31,7 @@ export default function ContactScreen() {
           actions.map((action) => (
             <ActionButton
               id={action.id}
+              key={action.id}
               type={action.type}
               action={action.action}
               title={action.title}
