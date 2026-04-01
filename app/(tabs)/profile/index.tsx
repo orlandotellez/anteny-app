@@ -38,7 +38,10 @@ export default function ProfileScreen() {
         <View style={styles.actions}>
           {
             actions.map((action) => (
-              <ActionButton id={action.id} key={action.id} type={action.type} icon={action.icon} title={action.title} action={action.action} />
+              <ActionButton
+                key={action.id}
+                {...action}
+              />
             ))
           }
         </View>

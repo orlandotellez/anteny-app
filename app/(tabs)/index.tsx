@@ -22,16 +22,7 @@ export default function ChatScreen() {
         data={chats}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ChatItem
-            id={item.id}
-            avatar={item.avatar}
-            name={item.name}
-            message={item.message}
-            time={item.time}
-            unread={item.unread}
-            status={item.status}
-            isOnline={item.isOnline}
-          />
+          <ChatItem {...item} />
         )}
         contentContainerStyle={{ paddingBottom: 100 }}
       />
