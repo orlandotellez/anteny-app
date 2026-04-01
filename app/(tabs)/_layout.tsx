@@ -22,7 +22,8 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: THEME.colors.secondary, borderTopColor: THEME.colors.secondary },
+        tabBarStyle: { backgroundColor: THEME.colors.secondary, borderTopColor: THEME.colors.secondary, height: 64 },
+        tabBarItemStyle: { marginTop: 6 },
         tabBarActiveTintColor: THEME.colors.text_title,
       }}
     >

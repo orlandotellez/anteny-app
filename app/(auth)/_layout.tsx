@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 
-type AuthRoutes = "login" | "register";
+type AuthRoutes = "login/index" | "register/index";
 
 interface AuthConfig {
   name: AuthRoutes;
@@ -9,8 +9,8 @@ interface AuthConfig {
 }
 
 const AUTH_ROUTES: AuthConfig[] = [
-  { name: "login" },
-  { name: "register" },
+  { name: "login/index" },
+  { name: "register/index" },
 ];
 
 export default function AuthLayout() {
