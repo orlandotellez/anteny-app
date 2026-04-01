@@ -6,9 +6,9 @@ import {
 } from "react-native";
 import { THEME } from "@/src/shared/lib/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { NewContactItem } from "@/src/features/contacts/new-contact/components/NewContactItem";
-import { Header } from "@/src/features/contacts/new-contact/components/Header";
-import { SearchNewContact } from "@/src/features/contacts/new-contact/components/SearchNewContact";
+import { Header } from "@/src/features/contacts/components/new-contact/Header";
+import { SearchNewContact } from "@/src/features/contacts/components/new-contact/SearchNewContact";
+import { NewContactItem } from "@/src/features/contacts/components/new-contact/NewContactItem";
 
 const mockContacts = [
   { id: "a", user_id: "1", displayname: "Marcus Chen" },

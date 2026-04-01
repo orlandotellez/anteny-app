@@ -6,12 +6,12 @@ import {
 } from "react-native";
 import { THEME } from "@/src/shared/lib/theme";
 import { contacts } from "@/src/shared/data/contacts";
-import type { ActionItem, IContactItem } from "@/src/shared/types/contacts";
-import { ContactItem } from "@/src/features/contacts/components/ContactItem";
+import type { ActionItem } from "@/src/shared/types/contacts";
+import { ContactItem } from "@/src/features/contacts/components/index/ContactItem";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Header } from "@/src/features/contacts/components/Header";
+import { Header } from "@/src/features/contacts/components/index/Header";
 import { router } from "expo-router";
-import { ActionButton } from "@/src/features/contacts/components/ActionButton";
+import { ActionButton } from "@/src/features/contacts/components/index/ActionButton";
 
 const actions: ActionItem[] = [
   { id: "a", type: "action", action: () => router.push("/contacts/new-group"), title: "New group", icon: "people" },
