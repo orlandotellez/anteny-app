@@ -1,9 +1,10 @@
 export const THEME = {
   colors: {
     background: '#000000',
-    surface: '#0F1724',
+    surface: '#002109',
     card: '#0F1724',
     primary: '#2ab184ff',
+    primary_opacity: 'rgba(42, 177, 132, 0.12)',
     secondary: '#111111',
     accent: '#00D4FF',
     text_title: '#ffffff',

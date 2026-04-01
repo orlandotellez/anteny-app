@@ -45,7 +45,7 @@ export default function RegisterScreen() {
             <TextInput
               style={styles.input}
               placeholder="John Doe"
-              placeholderTextColor="#bbcbb9"
+              placeholderTextColor={THEME.colors.text_opacity}
               value={name}
               onChangeText={setName}
             />
@@ -57,7 +57,7 @@ export default function RegisterScreen() {
             <TextInput
               style={styles.input}
               placeholder="jhondoe"
-              placeholderTextColor="#bbcbb9"
+              placeholderTextColor={THEME.colors.text_opacity}
               value={username}
               onChangeText={setUsername}
             />
@@ -70,7 +70,7 @@ export default function RegisterScreen() {
             <TextInput
               style={styles.input}
               placeholder="jhondoe@example.com"
-              placeholderTextColor="#bbcbb9"
+              placeholderTextColor={THEME.colors.text_opacity}
               value={email}
               onChangeText={setEmail}
             />
@@ -82,7 +82,7 @@ export default function RegisterScreen() {
             <TextInput
               style={styles.input}
               placeholder="••••••••"
-              placeholderTextColor="#bbcbb9"
+              placeholderTextColor={THEME.colors.text_opacity}
               secureTextEntry
             />
           </View>
@@ -90,7 +90,7 @@ export default function RegisterScreen() {
           {/* Button */}
           <TouchableOpacity style={styles.button}>
             <Text style={styles.buttonText}>Create account</Text>
-            <MaterialIcons name="arrow-forward" size={20} color="#002109" />
+            <MaterialIcons name="arrow-forward" size={20} color={THEME.colors.primary_opacity} />
           </TouchableOpacity>
         </View>
 
@@ -108,10 +108,9 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: THEME.colors.background,
     alignItems: "center",
   },
-
   content: {
     flex: 1,
     width: "100%",
@@ -119,8 +118,6 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "center",
   },
-
-  /* Glow effects */
   glowTop: {
     position: "absolute",
     top: -120,
@@ -128,7 +125,7 @@ const styles = StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: "rgba(42, 177, 132, 0.08)",
+    backgroundColor: THEME.colors.primary_opacity,
   },
   glowBottom: {
     position: "absolute",
@@ -137,7 +134,7 @@ const styles = StyleSheet.create({
     width: 260,
     height: 260,
     borderRadius: 130,
-    backgroundColor: "rgba(42, 177, 132, 0.08)",
+    backgroundColor: THEME.colors.primary_opacity,
   },
 
   /* Header */
@@ -155,7 +152,7 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: "rgba(42, 177, 132, 0.08)",
+    backgroundColor: THEME.colors.primary_opacity,
   },
   title: {
     fontSize: 26,
@@ -165,7 +162,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: "#bbcbb9",
+    color: THEME.colors.text_opacity,
     textAlign: "center",
   },
   form: {
@@ -176,7 +173,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    color: "#bbcbb9",
+    color: THEME.colors.text_title,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -201,7 +198,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   buttonText: {
-    color: "#002109",
+    color: THEME.colors.surface,
     fontWeight: "bold",
     fontSize: 16,
   },

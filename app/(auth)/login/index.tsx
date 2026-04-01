@@ -45,7 +45,7 @@ export default function LoginScreen() {
             <TextInput
               style={styles.input}
               placeholder="example@example.com"
-              placeholderTextColor="#bbcbb9"
+              placeholderTextColor={THEME.colors.text_opacity}
               value={email}
               onChangeText={setEmail}
             />
@@ -57,7 +57,7 @@ export default function LoginScreen() {
             <TextInput
               style={styles.input}
               placeholder="••••••••"
-              placeholderTextColor="#bbcbb9"
+              placeholderTextColor={THEME.colors.text_opacity}
               secureTextEntry
             />
           </View>
@@ -65,7 +65,7 @@ export default function LoginScreen() {
           {/* Button */}
           <TouchableOpacity style={styles.button}>
             <Text style={styles.buttonText}>Next</Text>
-            <MaterialIcons name="arrow-forward" size={20} color="#002109" />
+            <MaterialIcons name="arrow-forward" size={20} color={THEME.colors.surface} />
           </TouchableOpacity>
         </View>
 
@@ -94,8 +94,6 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "center",
   },
-
-  /* Glows */
   glowTop: {
     position: "absolute",
     top: -100,
@@ -103,7 +101,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: "rgba(42, 177, 132, 0.08)",
+    backgroundColor: THEME.colors.primary_opacity,
   },
   glowBottom: {
     position: "absolute",
@@ -112,10 +110,8 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     borderRadius: 125,
-    backgroundColor: "rgba(42, 177, 132, 0.08)",
+    backgroundColor: THEME.colors.primary_opacity,
   },
-
-  /* Header */
   header: {
     alignItems: "center",
     marginBottom: 40,
@@ -130,7 +126,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "rgba(42, 177, 132, 0.08)",
+    backgroundColor: THEME.colors.primary_opacity,
   },
   title: {
     fontSize: 28,
@@ -140,21 +136,18 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: "#bbcbb9",
+    color: THEME.colors.text_opacity,
     textAlign: "center",
   },
-
-  /* Form */
   form: {
     gap: 16,
   },
   field: {
     gap: 6,
   },
-
   label: {
     fontSize: 12,
-    color: "#bbcbb9",
+    color: THEME.colors.text_title,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -186,7 +179,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#444748",
   },
-
   button: {
     height: 56,
     backgroundColor: THEME.colors.primary,
@@ -197,7 +189,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: {
-    color: "#002109",
+    color: THEME.colors.surface,
     fontWeight: "bold",
     fontSize: 16,
   },
