@@ -2,8 +2,8 @@ import React from "react";
 import {
   StyleSheet,
   FlatList,
-  View,
   ScrollView,
+  Text,
 } from "react-native";
 import { THEME } from "@/src/shared/lib/theme";
 import { contacts } from "@/src/shared/data/contacts";
@@ -39,6 +39,8 @@ export default function ContactScreen() {
           ))
         }
 
+        <Text style={styles.subtitle}>Your contacts(5)</Text>
+
         {/* LIST */}
         <FlatList<IContactItem>
           data={contacts}
@@ -59,5 +61,6 @@ const styles = StyleSheet.create({
   subtitle: {
     color: THEME.colors.text_opacity,
     fontSize: 12,
+    paddingHorizontal: 12
   },
 });
