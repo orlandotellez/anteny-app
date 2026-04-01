@@ -28,11 +28,11 @@ export default function ChatScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={90}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         {/* HEADER */}
         <Header
@@ -46,7 +46,10 @@ export default function ChatScreen() {
 
         {/* CHAT */}
         <View style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={styles.chatContainer}>
+          <ScrollView contentContainerStyle={styles.chatContainer}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+          >
             <Conversation />
           </ScrollView>
         </View>
@@ -69,6 +72,6 @@ const styles = StyleSheet.create({
   },
   chatContainer: {
     padding: 12,
-    paddingBottom: 80,
+    paddingBottom: 20,
   },
 });

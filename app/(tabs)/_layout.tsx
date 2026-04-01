@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { THEME } from "@/src/shared/lib/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // el index es el ChatsScreen
 type TabRoutes = "index" | "contacts/index" | "profile/index";
@@ -18,11 +19,16 @@ const TABS: TabConfig[] = [
 ];
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: THEME.colors.secondary, borderTopColor: THEME.colors.secondary, height: 64 },
+        tabBarStyle: {
+          backgroundColor: THEME.colors.secondary, borderTopColor: THEME.colors.secondary,
+          height: 64 + insets.bottom,
+          paddingBottom: insets.bottom,
+        },
         tabBarItemStyle: { marginTop: 6 },
         tabBarActiveTintColor: THEME.colors.text_title,
       }}

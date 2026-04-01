@@ -13,6 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { THEME } from "@/src/shared/lib/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const mockUsers = [
   { id: "1", name: "Juan Pérez", mxid: "@juan:matrix.org" },
@@ -38,88 +39,90 @@ export default function CreateGroupScreen() {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Crear Grupo</Text>
-          <View style={styles.headerSpacer} />
-        </View>
+            <Text style={styles.headerTitle}>New group</Text>
+            <View style={styles.headerSpacer} />
+          </View>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Avatar */}
-          <View style={styles.avatarSection}>
-            <View style={styles.avatarContainer}>
-              <View style={styles.groupAvatar}>
-                <Ionicons name="people" size={40} color="#fff" />
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {/* Avatar */}
+            <View style={styles.avatarSection}>
+              <View style={styles.avatarContainer}>
+                <View style={styles.groupAvatar}>
+                  <Ionicons name="people" size={40} color="#fff" />
+                </View>
+
+                <View style={styles.cameraBadge}>
+                  <Ionicons name="camera" size={16} color="#fff" />
+                </View>
               </View>
 
-              <View style={styles.cameraBadge}>
-                <Ionicons name="camera" size={16} color="#fff" />
-              </View>
+              <Text style={styles.avatarLabel}>
+                Toca para cambiar foto
+              </Text>
             </View>
 
-            <Text style={styles.avatarLabel}>
-              Toca para cambiar foto
-            </Text>
-          </View>
+            {/* Nombre */}
+            <View style={styles.inputSection}>
+              <Text style={styles.label}>Nombre del grupo</Text>
 
-          {/* Nombre */}
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>Nombre del grupo</Text>
-
-            <TextInput
-              placeholder="Escribe un nombre para el grupo..."
-              placeholderTextColor="#888"
-              style={styles.groupInput}
-            />
-          </View>
-
-          {/* Buscador */}
-          <View style={styles.searchSection}>
-            <Text style={styles.label}>Buscar participantes</Text>
-
-            <View style={styles.searchContainer}>
-              <Ionicons name="search" size={20} color="#888" />
               <TextInput
-                placeholder="Buscar..."
+                placeholder="Escribe un nombre para el grupo..."
                 placeholderTextColor="#888"
-                style={styles.searchInput}
+                style={styles.groupInput}
               />
             </View>
+
+            {/* Buscador */}
+            <View style={styles.searchSection}>
+              <Text style={styles.label}>Buscar participantes</Text>
+
+              <View style={styles.searchContainer}>
+                <Ionicons name="search" size={20} color="#888" />
+                <TextInput
+                  placeholder="Buscar..."
+                  placeholderTextColor="#888"
+                  style={styles.searchInput}
+                />
+              </View>
+            </View>
+
+            {/* Lista */}
+            <View style={styles.usersSection}>
+              <Text style={styles.sectionTitle}>Contactos</Text>
+
+              <FlatList
+                data={mockUsers}
+                keyExtractor={(item) => item.id}
+                renderItem={renderUserItem}
+                scrollEnabled={false}
+              />
+            </View>
+          </ScrollView>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <TouchableOpacity style={styles.createButton}>
+              <Ionicons name="people" size={20} color="#fff" />
+              <Text style={styles.createButtonText}>
+                Crear Grupo
+              </Text>
+            </TouchableOpacity>
           </View>
-
-          {/* Lista */}
-          <View style={styles.usersSection}>
-            <Text style={styles.sectionTitle}>Contactos</Text>
-
-            <FlatList
-              data={mockUsers}
-              keyExtractor={(item) => item.id}
-              renderItem={renderUserItem}
-              scrollEnabled={false}
-            />
-          </View>
-        </ScrollView>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <TouchableOpacity style={styles.createButton}>
-            <Ionicons name="people" size={20} color="#fff" />
-            <Text style={styles.createButtonText}>
-              Crear Grupo
-            </Text>
-          </TouchableOpacity>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 

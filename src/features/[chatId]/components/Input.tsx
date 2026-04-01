@@ -22,20 +22,14 @@ export const Input = () => {
         <TouchableOpacity style={styles.micButton}>
           <MaterialIcons name="mic" size={22} color="#002109" />
         </TouchableOpacity>
-      </View>
-
+      </View >
     </>
-
   )
 }
 
 const styles = StyleSheet.create({
 
   footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     padding: 8,
     flexDirection: "row",
     alignItems: "flex-end",

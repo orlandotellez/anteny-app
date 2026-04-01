@@ -11,6 +11,7 @@ import { Feather } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { THEME } from "@/src/shared/lib/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const mockContacts = [
   { user_id: "1", displayname: "Marcus Chen" },
@@ -43,14 +44,15 @@ export default function NewContactScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Nuevo contacto</Text>
+        <Text style={styles.headerTitle}>New contact</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* SEARCH */}
@@ -76,7 +78,7 @@ export default function NewContactScreen() {
         contentContainerStyle={{ padding: 14, paddingBottom: 30 }}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -85,18 +87,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: THEME.colors.background,
   },
+
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     padding: 16,
-    backgroundColor: THEME.colors.secondary
+    backgroundColor: THEME.colors.secondary,
   },
-
   headerTitle: {
-    fontSize: 22,
-    fontWeight: "800",
+    flex: 1,
+    textAlign: "center",
     color: "#fff",
+    fontSize: 22,
+    fontWeight: "700",
+  },
+  headerSpacer: {
+    width: 40,
   },
 
   link: {
