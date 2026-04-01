@@ -2,7 +2,6 @@ import React from "react";
 import {
   StyleSheet,
   FlatList,
-  ScrollView,
   Text,
 } from "react-native";
 import { THEME } from "@/src/shared/lib/theme";
@@ -25,31 +24,25 @@ export default function ContactScreen() {
       {/* HEADER */}
       <Header />
 
-      <ScrollView>
-        {/* ACTIONS BUTTONS */}
-        {
-          actions.map((action) => (
-            <ActionButton
-              id={action.id}
-              key={action.id}
-              type={action.type}
-              action={action.action}
-              title={action.title}
-              icon={action.icon}
-            />
-          ))
+      <FlatList
+        data={contacts}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <ContactItem {...item} />}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        ListHeaderComponent={
+          <>
+            {/* ActionButton */}
+            {actions.map((action) => (
+              <ActionButton
+                key={action.id}
+                {...action}
+              />
+            ))}
+
+            <Text style={styles.subtitle}>Your contacts(5)</Text>
+          </>
         }
-
-        <Text style={styles.subtitle}>Your contacts(5)</Text>
-
-        {/* LIST */}
-        <FlatList<IContactItem>
-          data={contacts}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ContactItem {...item} />}
-          contentContainerStyle={{ paddingBottom: 100 }}
-        />
-      </ScrollView>
+      />
     </SafeAreaView>
   );
 }
