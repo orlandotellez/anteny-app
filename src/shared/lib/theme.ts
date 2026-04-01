@@ -11,7 +11,9 @@ export const THEME = {
     text_opacity: '#bbcbb9',
     onSurfaceVariant: '#94A3B8zz',
     muted: '#6B7280',
-    danger: '#FF6B6B',
+    danger: '#ff4d4d',
+    danger_card: 'rgba(255, 77, 77, 0.12)',
+    danger_opacity: 'rgba(255, 77, 77, 0.08)',
     error: '#FF6B6B',
     border: '#3B434E',
   }

@@ -39,7 +39,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   iconBtn: {
-    padding: 8,
     borderRadius: 20,
   },
 })

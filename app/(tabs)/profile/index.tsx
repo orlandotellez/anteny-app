@@ -11,6 +11,8 @@ import { Header } from "@/src/features/profile/components/Header";
 import { Avatar } from "@/src/features/profile/components/Avatar";
 import { Form } from "@/src/features/profile/components/Form";
 import { PrivacyTag } from "@/src/features/profile/components/PrivacyTag";
+import { DangerZone } from "@/src/features/profile/components/DangerZone";
+import { router } from "expo-router";
 
 export default function ProfileScreen() {
   return (
@@ -33,6 +35,11 @@ export default function ProfileScreen() {
 
         {/* PRIVACY TAG */}
         <PrivacyTag />
+
+        {/* Danger Zone*/}
+        <DangerZone
+          onLogout={() => router.push("/login")}
+        />
       </ScrollView>
     </SafeAreaView>
   );
