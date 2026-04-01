@@ -22,7 +22,7 @@ export default function AuthLayout() {
         contentStyle: {
           backgroundColor: THEME.colors.secondary,
         },
-        animation: "fade",
+        animation: "none",
       }}
     >
       {AUTH_ROUTES.map((route) => (

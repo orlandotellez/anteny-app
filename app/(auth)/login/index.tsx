@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { THEME } from "@/src/shared/lib/theme";
+import { Link } from "expo-router";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -34,8 +35,6 @@ export default function LoginScreen() {
             Please enter your details to continue
           </Text>
         </View>
-
-
 
         {/* FORM */}
         <View style={styles.form}>
@@ -67,6 +66,17 @@ export default function LoginScreen() {
             <Text style={styles.buttonText}>Next</Text>
             <MaterialIcons name="arrow-forward" size={20} color={THEME.colors.surface} />
           </TouchableOpacity>
+        </View>
+
+        {/* Not Account */}
+        <View style={styles.notAccount}>
+          <Text style={styles.textNotAccount}>
+            Don't have an account?
+          </Text>
+          <Link href={"/register"} style={styles.registerHere}>
+            Register here
+          </Link>
+
         </View>
 
         {/* Footer */}
@@ -192,6 +202,19 @@ const styles = StyleSheet.create({
     color: THEME.colors.surface,
     fontWeight: "bold",
     fontSize: 16,
+  },
+  notAccount: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20
+  },
+  textNotAccount: {
+    color: THEME.colors.text_title,
+    display: "flex",
+  },
+  registerHere: {
+    color: THEME.colors.primary,
   },
   footer: {
     marginTop: 40,
