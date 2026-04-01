@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { THEME } from "@/src/shared/lib/theme";
 
-type TabRoutes = "chats/index" | "contacts/index";
+type TabRoutes = "chats/index" | "contacts/index" | "profile/index";
 
 interface TabConfig {
   name: TabRoutes;
@@ -13,6 +13,7 @@ interface TabConfig {
 const TABS: TabConfig[] = [
   { name: "chats/index", title: "Chats", icon: "chatbubble-outline" },
   { name: "contacts/index", title: "Contacts", icon: "people-outline" },
+  { name: "profile/index", title: "profile", icon: "man-outline" },
 ];
 
 export default function TabLayout() {
