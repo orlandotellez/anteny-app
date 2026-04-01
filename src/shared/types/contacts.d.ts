@@ -19,5 +19,6 @@ export interface ActionItem {
   type: "action";
   title: string;
   icon: any;
+  action: () => void
 }
 

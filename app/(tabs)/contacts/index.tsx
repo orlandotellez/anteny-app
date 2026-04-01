@@ -5,11 +5,17 @@ import {
 } from "react-native";
 import { THEME } from "@/src/shared/lib/theme";
 import { contacts } from "@/src/shared/data/contacts";
-import type { IContactItem } from "@/src/shared/types/contacts";
+import type { ActionItem, IContactItem } from "@/src/shared/types/contacts";
 import { ContactItem } from "@/src/features/contacts/components/ContactItem";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ActionsButtons } from "@/src/features/contacts/components/ActionsButtons";
 import { Header } from "@/src/features/contacts/components/Header";
+import { router } from "expo-router";
+import { ActionButton } from "@/src/features/profile/components/ActionButton";
+
+const actions: ActionItem[] = [
+  { id: "a", type: "action", action: () => router.push("/contacts/new-group"), title: "New group", icon: "people" },
+  { id: "b", type: "action", action: () => router.push("/contacts/new-contact"), title: "New contact", icon: "person-add" },
+]
 
 export default function ContactScreen() {
   return (
@@ -18,7 +24,17 @@ export default function ContactScreen() {
       <Header />
 
       {/* ACTIONS BUTTONS */}
-      <ActionsButtons />
+      {
+        actions.map((action) => (
+          <ActionButton
+            id={action.id}
+            type={action.type}
+            action={action.action}
+            title={action.title}
+            icon={action.icon}
+          />
+        ))
+      }
 
       {/* LIST */}
       <FlatList<IContactItem>
