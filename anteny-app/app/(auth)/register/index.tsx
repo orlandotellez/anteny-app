@@ -59,7 +59,7 @@ export default function RegisterScreen() {
       triggerToast();
 
       // Navegar al login después de 1.8s
-      setTimeout(() => router.push("/login"), 1800);
+      setTimeout(() => router.push("/login"), 800);
     } catch (e: any) {
       setGlobalError(e.message || "Error de red");
     } finally {
