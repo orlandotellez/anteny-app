@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   title: {
-    color: THEME.colors.primary,
+    color: THEME.colors.text_title,
     fontSize: 22,
     fontWeight: "bold",
   },

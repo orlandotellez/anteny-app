@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerTitle: {
-    color: THEME.colors.primary,
+    color: THEME.colors.text_title,
     fontSize: 22,
     fontWeight: "bold",
   },
