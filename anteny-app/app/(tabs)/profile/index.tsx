@@ -14,6 +14,7 @@ import { PrivacyTag } from "@/src/features/profile/components/PrivacyTag";
 import { DangerZone } from "@/src/features/profile/components/DangerZone";
 import { router } from "expo-router";
 import { ActionItem } from "@/src/shared/types/contacts";
+import { useAuth } from "@/src/features/auth/context/AuthContext";
 
 const actions: ActionItem[] = [
   { id: "a", type: "action", action: () => { }, title: "My Code", icon: "qr-code" },
@@ -21,6 +22,7 @@ const actions: ActionItem[] = [
 ]
 
 export default function ProfileScreen() {
+  const { logout } = useAuth()
 
   return (
     <SafeAreaView style={styles.container}>
@@ -51,7 +53,10 @@ export default function ProfileScreen() {
 
         {/* Danger Zone*/}
         <DangerZone
-          onLogout={() => router.push("/login")}
+          onLogout={async () => {
+            await logout()
+            router.push("/login")
+          }}
         />
       </ScrollView>
     </SafeAreaView>

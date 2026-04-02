@@ -16,8 +16,10 @@ import { loginUser } from "@/src/shared/services/matrix";
 import { FormLogin } from "@/src/features/auth/login/components/FormLogin";
 import { NotAccount } from "@/src/features/auth/login/components/NotAccount";
 import { Footer } from "@/src/features/auth/login/components/Footer";
+import { useAuth } from "@/src/features/auth/context/AuthContext";
 
 export default function LoginScreen() {
+  const { saveSecureStore } = useAuth();
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -50,13 +52,16 @@ export default function LoginScreen() {
     setLoading(true);
     setGlobalError(null);
     try {
-      await loginUser(form.username, form.password);
+      const session = await loginUser(form.username, form.password);
+
+      // Guardar sesión en SecureStore
+      await saveSecureStore(session);
 
       // toast de éxito
       triggerToast();
 
-      // Navegar a la pantalla de chat después de 1.8s
-      setTimeout(() => router.push("/"), 800);
+      // Navegar a la pantalla de chat después de 800ms
+      setTimeout(() => router.replace("/"), 800);
     } catch (e: any) {
       setGlobalError(e.message || "Error de red");
     } finally {
