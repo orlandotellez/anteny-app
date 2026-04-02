@@ -1,0 +1,57 @@
+server_name: "example.com"  
+
+pid_file: /data/homeserver.pid
+
+listeners:
+  - port: 8008
+    resources:
+      - compress: false
+        names:
+          - client
+          - federation
+    tls: false
+    type: http
+    x_forwarded: true
+
+database:
+  name: psycopg2
+  args:
+    user: "${POSTGRES_USER}"
+    password: "${POSTGRES_PASSWORD}"
+    database: "${POSTGRES_DB}"
+    host: db
+    port: 5432
+    cp_min: 5
+    cp_max: 10
+
+log_config: "/data/homeserver.log.config"
+media_store_path: /data/media_store
+
+registration_shared_secret: "${REGISTRATION_SHARED_SECRET}"
+macaroon_secret_key: "${MACAROON_SECRET_KEY}"
+form_secret: "${FORM_SECRET}"
+
+signing_key_path: "/data/homeserver.signing.key"
+
+trusted_key_servers:
+  - server_name: "matrix.org"
+
+enable_registration: true
+enable_registration_without_verification: true
+
+rc_login:
+  address:
+    per_second: 1000
+    burst_count: 1000
+  account:
+    per_second: 1000
+    burst_count: 1000
+  failed_attempts:
+    per_second: 1000
+    burst_count: 1000
+
+user_directory:
+  enabled: true
+  search_all_users: true
+
+user_directory_search_enabled: true
