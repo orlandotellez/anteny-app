@@ -36,9 +36,11 @@ signing_key_path: "/data/homeserver.signing.key"
 trusted_key_servers:
   - server_name: "matrix.org"
 
+# config extra
 enable_registration: true
 enable_registration_without_verification: true
 
+## todo estos valores son para las pruebas, en producción modificar cada valor
 rc_login:
   address:
     per_second: 1000
@@ -50,6 +52,7 @@ rc_login:
     per_second: 1000
     burst_count: 1000
 
+## sirve para activar la busqueda de usuarios que hay en el servidor
 user_directory:
   enabled: true
   search_all_users: true
