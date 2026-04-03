@@ -18,10 +18,12 @@ import { NotAccount } from "@/src/features/auth/login/components/NotAccount";
 import { Footer } from "@/src/features/auth/login/components/Footer";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { useProfile } from "@/src/features/profile/context/ProfileContext";
+import { useChats } from "@/src/features/chats/context/ChatContext";
 
 export default function LoginScreen() {
   const { saveSecureStore } = useAuth();
   const { fetchProfileFromMatrix } = useProfile();
+  const { loadChats } = useChats();
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -61,6 +63,9 @@ export default function LoginScreen() {
 
       // Cargar perfil desde Matrix
       await fetchProfileFromMatrix(session.user_id, session.access_token);
+      
+      // Cargar chats
+      await loadChats();
 
       // toast de éxito
       triggerToast();

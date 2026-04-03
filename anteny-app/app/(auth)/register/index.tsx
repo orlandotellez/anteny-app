@@ -18,10 +18,12 @@ import { HaveAccount } from "@/src/features/auth/register/components/HaveAccount
 import { Footer } from "@/src/features/auth/register/components/Footer";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { useProfile } from "@/src/features/profile/context/ProfileContext";
+import { useChats } from "@/src/features/chats/context/ChatContext";
 
 export default function RegisterScreen() {
   const { saveSecureStore } = useAuth();
   const { setProfileStorage } = useProfile()
+  const { loadChats } = useChats()
   const [form, setForm] = useState({
     displayName: "",
     username: "",
@@ -72,6 +74,9 @@ export default function RegisterScreen() {
         displayName: form.displayName,
         status: "",
       });
+      
+      // Cargar chats
+      await loadChats();
 
       // toast de éxito
       triggerToast();
