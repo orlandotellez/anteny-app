@@ -1,33 +1,91 @@
+import { useState } from "react";
 import { THEME } from "@/src/shared/lib/theme";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useAuth } from "@/src/features/auth/context/AuthContext";
+import { createDirectChat } from "@/src/services/matrix";
+import { useChats } from "@/src/features/chats/context/ChatContext";
+import { router } from "expo-router";
 
-interface NewContactItem {
-  displayname: string
+interface NewContactItemProps {
+  user_id: string;
+  displayname: string;
+  existingChatRoomId?: string;
 }
 
-export const NewContactItem = ({ displayname }: NewContactItem) => (
-  <View style={styles.row}>
-    <View style={styles.avatar}>
-      <Text style={{ color: "#fff", fontWeight: "700" }}>
-        {displayname[0]}
-      </Text>
+export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: NewContactItemProps) => {
+  const { session } = useAuth();
+  const { loadChats } = useChats();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const hasExistingChat = !!existingChatRoomId;
+
+  const handlePress = async () => {
+    if (!session?.access_token) return;
+
+    if (hasExistingChat) {
+      // Ir al chat existente
+      router.push(`/${existingChatRoomId}`);
+      return;
+    }
+
+    // Crear nuevo chat
+    setIsLoading(true);
+    try {
+      const room_id = await createDirectChat(user_id, session.access_token);
+      
+      // Recargar los chats para que aparezcan en la lista
+      await loadChats();
+      
+      // Redirigir al chat
+      router.push(`/${room_id}`);
+    } catch (error) {
+      console.error("Error creating chat:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <View style={styles.row}>
+      <View style={styles.avatar}>
+        <Text style={{ color: "#fff", fontWeight: "700" }}>
+          {displayname?.[0] || "?"}
+        </Text>
+      </View>
+
+      <View style={{ flex: 1, marginLeft: 12 }}>
+        <Text style={styles.name}>{displayname}</Text>
+        <Text style={styles.status}>
+          {hasExistingChat ? "Chat existente" : "Disponible"}
+        </Text>
+      </View>
+
+      <TouchableOpacity style={styles.profileButton}>
+        <Text style={styles.viewProfile}>View profile</Text>
+        <Feather name="user" size={18} color={THEME.colors.primary} />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.inviteButton, 
+          hasExistingChat && styles.goToChatButton,
+          isLoading && styles.inviteButtonDisabled
+        ]}
+        onPress={handlePress}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color="#000" />
+        ) : (
+          <Text style={[styles.buttonText, hasExistingChat && styles.goToChatText]}>
+            {hasExistingChat ? "Go to chat" : "Create chat"}
+          </Text>
+        )}
+      </TouchableOpacity>
     </View>
-
-    <View style={{ flex: 1, marginLeft: 12 }}>
-      <Text style={styles.name}>{displayname}</Text>
-      <Text style={styles.status}>Disponible</Text>
-    </View>
-
-    <TouchableOpacity style={styles.profileButton}>
-      <Feather name="user" size={18} color={THEME.colors.primary} />
-    </TouchableOpacity>
-
-    <TouchableOpacity style={styles.inviteButton}>
-      <Text style={styles.buttonText}>Invitar</Text>
-    </TouchableOpacity>
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
 
@@ -66,6 +124,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: THEME.colors.primary,
     marginRight: 8,
+    display: "flex",
+    flexDirection: "row-reverse",
+    gap: 10
   },
 
   inviteButton: {
@@ -73,9 +134,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: THEME.colors.primary,
+    minWidth: 100,
+    alignItems: "center",
+  },
+  goToChatButton: {
+    backgroundColor: "#2a2a2a",
+    borderWidth: 1,
+    borderColor: THEME.colors.primary,
+  },
+  inviteButtonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: "#000",
     fontWeight: "700",
   },
+  goToChatText: {
+    color: THEME.colors.primary,
+  },
+  viewProfile: {
+    color: THEME.colors.primary
+  }
 })

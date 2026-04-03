@@ -1,59 +1,58 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { THEME } from "@/src/shared/lib/theme";
-import { ActionItem, PersonItem } from "@/src/shared/types/contacts";
+import { getColorFromName } from "@/src/shared/utils/format";
 
-type ContactItemProps = ActionItem | PersonItem;
+interface ContactItemProps {
+  id: string;
+  name: string;
+  avatar?: string;
+  status?: string;
+  isOnline?: boolean;
+  onPress?: () => void;
+}
 
-export const ContactItem = (item: ContactItemProps) => {
-  const name = (item as PersonItem).name;
-  const avatar = (item as PersonItem).avatar;
-  const status = (item as PersonItem).status;
+export const ContactItem = ({ name, status, isOnline, onPress }: ContactItemProps) => {
+  const avatarColor = getColorFromName(name);
+  const initial = name ? name[0].toUpperCase() : "?";
 
   return (
-    // CONTACT ITEM
-    <TouchableOpacity style={styles.contactItem}>
-      {avatar ? (
-        <Image source={{ uri: avatar }} style={styles.avatar} />
-      ) : (
-        <View style={styles.avatarPlaceholder}>
-          <Ionicons name="person" size={20} color="#8e9192" />
-        </View>
-      )}
+    <TouchableOpacity 
+      style={styles.contactItem}
+      onPress={onPress}
+    >
+      <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
+        <Text style={styles.avatarText}>{initial}</Text>
+      </View>
 
       <View style={styles.contactInfo}>
         <Text style={styles.name}>{name}</Text>
-        <Text style={styles.status}>{status}</Text>
+        <Text style={styles.status}>
+          {isOnline ? "Online" : status}
+        </Text>
       </View>
     </TouchableOpacity>
   )
 }
 
 const styles = StyleSheet.create({
-  sectionHeader: {
-    color: THEME.colors.text_opacity,
-    fontSize: 11,
-    marginTop: 10,
-    marginLeft: 16,
-  },
   contactItem: {
     flexDirection: "row",
     padding: 16,
     alignItems: "center",
   },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 24,
-  },
 
-  avatarPlaceholder: {
+  avatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#2a2a2a",
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  avatarText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
 
   contactInfo: {
@@ -63,10 +62,12 @@ const styles = StyleSheet.create({
   name: {
     color: THEME.colors.text_title,
     fontWeight: "500",
+    fontSize: 16,
   },
 
   status: {
     color: THEME.colors.text_opacity,
     fontSize: 12,
+    marginTop: 2,
   },
 });

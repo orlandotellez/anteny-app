@@ -1,8 +1,21 @@
+import { useState } from "react";
 import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native"
 import { Feather } from "@expo/vector-icons";
 import { THEME } from "@/src/shared/lib/theme";
 
-export const SearchNewContact = () => {
+interface SearchNewContactProps {
+  onSearch: (term: string) => void;
+}
+
+export const SearchNewContact = ({ onSearch }: SearchNewContactProps) => {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      onSearch(searchTerm.trim());
+    }
+  };
+
   return (
     <>
       <View style={styles.searchContainer}>
@@ -12,9 +25,13 @@ export const SearchNewContact = () => {
           placeholder="Buscar usuario..."
           placeholderTextColor="#888"
           style={styles.searchInput}
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+          onSubmitEditing={handleSearch}
+          returnKeyType="search"
         />
 
-        <TouchableOpacity style={styles.btnSearch}>
+        <TouchableOpacity style={styles.btnSearch} onPress={handleSearch}>
           <Feather name="arrow-right" size={22} color="#000" />
         </TouchableOpacity>
       </View>
