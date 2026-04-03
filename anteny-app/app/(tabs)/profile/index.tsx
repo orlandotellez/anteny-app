@@ -15,6 +15,8 @@ import { DangerZone } from "@/src/features/profile/components/DangerZone";
 import { router } from "expo-router";
 import { ActionItem } from "@/src/shared/types/contacts";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
+import { useProfile } from "@/src/features/profile/context/ProfileContext";
+import { getUsernameFromUserId } from "@/src/shared/utils/format";
 
 const actions: ActionItem[] = [
   { id: "a", type: "action", action: () => { }, title: "My Code", icon: "qr-code" },
@@ -22,7 +24,22 @@ const actions: ActionItem[] = [
 ]
 
 export default function ProfileScreen() {
-  const { logout } = useAuth()
+  const { logout, session } = useAuth()
+  const { profile, setProfileStorage, clearProfile } = useProfile()
+
+  // Extraer username del user_id (ej: "@orlando:example.com" → "orlando")
+  const username = session ? getUsernameFromUserId(session.user_id) : null;
+
+  // Actualizar display name localmente
+  const handleDisplayNameUpdate = async (newDisplayName: string) => {
+    if (!session?.user_id) return;
+
+    await setProfileStorage({
+      id: session.user_id,
+      displayName: newDisplayName,
+      status: profile?.status || "",
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -31,10 +48,10 @@ export default function ProfileScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         {/* AVATAR */}
-        <Avatar />
+        <Avatar username={username || undefined} displayName={profile?.displayName} />
 
         {/* FORM */}
-        <Form />
+        <Form onDisplayNameUpdate={handleDisplayNameUpdate} />
 
         {/* ACTIONS */}
         <View style={styles.actions}>
@@ -55,7 +72,8 @@ export default function ProfileScreen() {
         <DangerZone
           onLogout={async () => {
             await logout()
-            router.push("/login")
+            await clearProfile()
+            router.replace("/(auth)/login")
           }}
         />
       </ScrollView>

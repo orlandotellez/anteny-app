@@ -4,7 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 interface FormRegisterProps {
   values: {
-    name: string;
+    displayName: string;
     username: string;
     email: string;
     password: string;
@@ -32,8 +32,8 @@ export const FormRegister = ({
           style={styles.input}
           placeholder="John Doe"
           placeholderTextColor={THEME.colors.text_opacity}
-          value={values.name}
-          onChangeText={(text) => onChange("name", text)}
+          value={values.displayName}
+          onChangeText={(text) => onChange("displayName", text)}
         />
       </View>
 

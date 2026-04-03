@@ -1,4 +1,4 @@
-import { authStorage } from '@/src/shared/services/auth-storage';
+import { authStorage } from '@/src/shared/storage/auth-storage';
 import { MatrixSession } from '@/src/shared/types/matrix';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 

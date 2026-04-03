@@ -11,15 +11,19 @@ import {
 import { THEME } from "@/src/shared/lib/theme";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { registerUser } from "@/src/shared/services/matrix";
+import { registerUser, setDisplayName } from "@/src/shared/services/matrix";
 import { Header } from "@/src/features/auth/register/components/Header";
 import { FormRegister } from "@/src/features/auth/register/components/FormRegister";
 import { HaveAccount } from "@/src/features/auth/register/components/HaveAccount";
 import { Footer } from "@/src/features/auth/register/components/Footer";
+import { useAuth } from "@/src/features/auth/context/AuthContext";
+import { useProfile } from "@/src/features/profile/context/ProfileContext";
 
 export default function RegisterScreen() {
+  const { saveSecureStore } = useAuth();
+  const { setProfileStorage } = useProfile()
   const [form, setForm] = useState({
-    name: "",
+    displayName: "",
     username: "",
     email: "",
     password: "",
@@ -53,13 +57,27 @@ export default function RegisterScreen() {
     setLoading(true);
     setGlobalError(null);
     try {
-      await registerUser(form.username, form.password);
+      // Registrar usuario en Matrix
+      const session = await registerUser(form.username, form.password);
+
+      // Guardar sesión
+      await saveSecureStore(session);
+
+      // Actualizar display name en Matrix
+      await setDisplayName(session.user_id, session.access_token, form.displayName);
+
+      // Guardar perfil en storage
+      await setProfileStorage({
+        id: session.user_id,
+        displayName: form.displayName,
+        status: "",
+      });
 
       // toast de éxito
       triggerToast();
 
-      // Navegar al login después de 1.8s
-      setTimeout(() => router.push("/login"), 800);
+      // Navegar al home después de 800ms
+      setTimeout(() => router.replace("/"), 800);
     } catch (e: any) {
       setGlobalError(e.message || "Error de red");
     } finally {

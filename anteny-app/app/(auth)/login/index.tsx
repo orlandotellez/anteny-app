@@ -17,9 +17,11 @@ import { FormLogin } from "@/src/features/auth/login/components/FormLogin";
 import { NotAccount } from "@/src/features/auth/login/components/NotAccount";
 import { Footer } from "@/src/features/auth/login/components/Footer";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
+import { useProfile } from "@/src/features/profile/context/ProfileContext";
 
 export default function LoginScreen() {
   const { saveSecureStore } = useAuth();
+  const { fetchProfileFromMatrix } = useProfile();
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -56,6 +58,9 @@ export default function LoginScreen() {
 
       // Guardar sesión en SecureStore
       await saveSecureStore(session);
+
+      // Cargar perfil desde Matrix
+      await fetchProfileFromMatrix(session.user_id, session.access_token);
 
       // toast de éxito
       triggerToast();
