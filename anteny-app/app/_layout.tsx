@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/src/features/auth/context/AuthContext';
 import { useEffect, useState, ReactNode } from 'react';
 import { ProfileProvider } from '@/src/features/profile/context/ProfileContext';
+import { ChatProvider } from '@/src/features/chats/context/ChatContext';
 
 type RootRoutes = "(tabs)" | "[chatId]" | "(auth)";
 
@@ -77,31 +78,33 @@ export default function RootLayout() {
         <AuthProvider>
           <AuthGuard>
             <ProfileProvider>
-              <View style={{ flex: 1, backgroundColor: THEME.colors.secondary }}>
-                <StatusBar backgroundColor={THEME.colors.secondary} translucent={false} />
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    contentStyle: {
-                      backgroundColor: THEME.colors.secondary,
-                    },
-                    animation: "slide_from_right",
-                  }
-                  }
-                >
-                  {ROOT_STACK.map((route) => (
-                    <Stack.Screen
-                      key={route.name}
-                      name={route.name}
-                      options={{
-                        headerShown: route.headerShown,
-                        title: route.title,
-                        presentation: route.presentation,
-                      }}
-                    />
-                  ))}
-                </Stack>
-              </View>
+              <ChatProvider>
+                <View style={{ flex: 1, backgroundColor: THEME.colors.secondary }}>
+                  <StatusBar backgroundColor={THEME.colors.secondary} translucent={false} />
+                  <Stack
+                    screenOptions={{
+                      headerShown: false,
+                      contentStyle: {
+                        backgroundColor: THEME.colors.secondary,
+                      },
+                      animation: "slide_from_right",
+                    }
+                    }
+                  >
+                    {ROOT_STACK.map((route) => (
+                      <Stack.Screen
+                        key={route.name}
+                        name={route.name}
+                        options={{
+                          headerShown: route.headerShown,
+                          title: route.title,
+                          presentation: route.presentation,
+                        }}
+                      />
+                    ))}
+                  </Stack>
+                </View>
+              </ChatProvider>
             </ProfileProvider>
           </AuthGuard>
         </AuthProvider>
