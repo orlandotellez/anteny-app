@@ -33,10 +33,10 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
     setIsLoading(true);
     try {
       const room_id = await createDirectChat(user_id, session.access_token);
-      
+
       // Recargar los chats para que aparezcan en la lista
       await loadChats();
-      
+
       // Redirigir al chat
       router.push(`/${room_id}`);
     } catch (error) {
@@ -68,7 +68,7 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
 
       <TouchableOpacity
         style={[
-          styles.inviteButton, 
+          styles.inviteButton,
           hasExistingChat && styles.goToChatButton,
           isLoading && styles.inviteButtonDisabled
         ]}
@@ -79,7 +79,7 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
           <ActivityIndicator size="small" color="#000" />
         ) : (
           <Text style={[styles.buttonText, hasExistingChat && styles.goToChatText]}>
-            {hasExistingChat ? "Go to chat" : "Create chat"}
+            {hasExistingChat ? "Go to chat" : "Invite"}
           </Text>
         )}
       </TouchableOpacity>
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   goToChatButton: {
-    backgroundColor: "#2a2a2a",
+    backgroundColor: THEME.colors.background,
     borderWidth: 1,
     borderColor: THEME.colors.primary,
   },

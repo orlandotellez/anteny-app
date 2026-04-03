@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { getJoinedRooms, getRoomMembers, leaveRoom, getRoomName } from '@/src/services/matrix';
+import { getJoinedRooms, getInvitedRooms, getRoomMembers, leaveRoom, getRoomName, joinRoom } from '@/src/services/matrix';
 import { authStorage } from '@/src/shared/storage/auth-storage';
 import { getUsernameFromUserId } from '@/src/shared/utils/format';
 import { ChatRoom } from '@/src/shared/types/room';
@@ -10,6 +10,7 @@ interface ChatContextType {
   loadChats: () => Promise<void>;
   getChatById: (roomId: string) => ChatRoom | undefined;
   removeChat: (roomId: string) => Promise<void>;
+  acceptInvite: (roomId: string) => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -31,12 +32,15 @@ export function ChatProvider({ children }: ChatProviderProps) {
         return;
       }
 
-      // Obtener salas unidas
-      const roomIds = await getJoinedRooms(session.access_token);
+      // Obtener salas unidas Y salas invitadas
+      const [joinedRoomIds, invitedRooms] = await Promise.all([
+        getJoinedRooms(session.access_token),
+        getInvitedRooms(session.access_token).catch(() => []),
+      ]);
 
       // Para cada sala, obtener miembros y nombre
       const chatRooms: ChatRoom[] = await Promise.all(
-        roomIds.map(async (roomId: string) => {
+        joinedRoomIds.map(async (roomId: string) => {
           try {
             const members = await getRoomMembers(roomId, session.access_token!);
             const roomName = await getRoomName(roomId, session.access_token!);
@@ -86,8 +90,42 @@ export function ChatProvider({ children }: ChatProviderProps) {
         })
       );
 
+      // Procesar salas invitadas (agregar como "invitaciones pendientes")
+      for (const invitedRoom of invitedRooms) {
+        const roomId = invitedRoom.room_id;
+        const inviterUserId = invitedRoom.inviter_user_id;
+        // Use displayname if available, otherwise extract username from user_id
+        const inviterName = invitedRoom.inviter_name ||
+          (inviterUserId ? getUsernameFromUserId(inviterUserId) : 'Unknown');
+
+        // Agregar como chat con flag de invitación
+        chatRooms.push({
+          room_id: roomId,
+          members: [],
+          isDirect: true,
+          otherUser: inviterUserId ? {
+            user_id: inviterUserId,
+            displayname: inviterName,
+          } : undefined,
+          name: inviterName,
+          isInvite: true, // Flag para indicar que es una invitación pendiente
+        });
+      }
+
+      // FILTRAR DUPLICADOS: remover salas invitadas que ya están en salas unidas
+      // (el usuario ya se unió a esa sala)
+      const seenRoomIds = new Set<string>();
+      const uniqueChats: ChatRoom[] = [];
+
+      for (const chat of chatRooms) {
+        if (!seenRoomIds.has(chat.room_id)) {
+          seenRoomIds.add(chat.room_id);
+          uniqueChats.push(chat);
+        }
+      }
+
       // Filtrar salas que no se pudieron cargar y ordenar por nombre
-      const validChats = chatRooms
+      const validChats = uniqueChats
         .filter((chat): chat is ChatRoom => chat !== null)
         .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
@@ -119,6 +157,24 @@ export function ChatProvider({ children }: ChatProviderProps) {
     }
   }, []);
 
+  const acceptInvite = useCallback(async (roomId: string) => {
+    try {
+      const session = await authStorage.getSession();
+      if (!session?.access_token) return;
+
+      setChats(prev => prev.filter(chat => chat.room_id !== roomId));
+
+      // Unirse a la sala (aceptar invitación)
+      await joinRoom(roomId, session.access_token);
+
+      // Recargar los chats
+      await loadChats();
+    } catch (error) {
+      console.error('Error accepting invite:', error);
+      throw error;
+    }
+  }, [loadChats]);
+
   // Cargar chats al montar
   useEffect(() => {
     loadChats();
@@ -130,6 +186,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
     loadChats,
     getChatById,
     removeChat,
+    acceptInvite,
   };
 
   return (

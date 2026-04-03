@@ -1,3 +1,4 @@
+import { InvitedRoom } from "@/src/shared/types/room";
 import { ENV } from "../../shared/constants/env";
 
 export const createDirectChat = async (
@@ -59,19 +60,29 @@ export const getJoinedRooms = async (token: string) => {
   }
 };
 
-export const getInvitedRoomIds = async (token: string, since?: string): Promise<string[]> => {
+
+// esta función devuelve todas las salas donde hay invitación pero el usuario no ha aceptado
+export const getInvitedRooms = async (token: string, since?: string): Promise<InvitedRoom[]> => {
   try {
+    // Creamos la URL del endpoint /sync de Matrix
     const url = new URL(`${ENV.MATRIX_URL}/_matrix/client/v3/sync`);
+
+    // timeout=0 → respuesta inmediata (sin long polling)
     url.searchParams.set('timeout', '0');
+
+    // since → permite obtener solo cambios desde la última sync
     if (since) {
       url.searchParams.set('since', since);
     }
+
+    // filter → pedimos SOLO las invitaciones (no toda la data de rooms)
     url.searchParams.set('filter', JSON.stringify({
       rooms: {
         invite: true
       }
     }));
 
+    // Hacemos la petición a Matrix
     const res = await fetch(url.toString(), {
       method: "GET",
       headers: {
@@ -81,22 +92,58 @@ export const getInvitedRoomIds = async (token: string, since?: string): Promise<
 
     const data = await res.json();
 
+    // Si hay error, devolvemos array vacío
     if (!res.ok) {
-      console.error("getInvitedRoomIds error:", data);
+      console.error("getInvitedRooms error:", data);
       return [];
     }
 
-    // Extract room IDs from invite_state
-    const invitedRooms: string[] = [];
+    // Aquí vamos a construir el resultado final
+    const invitedRooms: InvitedRoom[] = [];
+
+    // Verificamos si existen salas con invitaciones
     if (data.rooms?.invite) {
-      for (const roomId of Object.keys(data.rooms.invite)) {
-        invitedRooms.push(roomId);
+
+      // Recorremos cada sala donde estamos invitados
+      for (const [roomId, roomData] of Object.entries(data.rooms.invite)) {
+
+        // invite_state contiene eventos relacionados con la invitación
+        const inviteState = (roomData as any).invite_state;
+        const events = inviteState?.events || [];
+
+        // Buscamos el evento de tipo "m.room.member" con membership "invite"
+        // Este evento representa la invitación
+        const memberEvent = events.find((e: any) =>
+          e.type === 'm.room.member' && e.content?.membership === 'invite'
+        );
+
+        // El sender del evento es quien nos invitó
+        const inviterUserId = memberEvent?.sender;
+
+        // Ahora buscamos el evento donde ese usuario (el que invita) está unido a la sala
+        // para poder obtener su displayname
+        const inviterMemberEvent = events.find((e: any) =>
+          e.type === 'm.room.member' &&
+          e.content?.membership === 'join' &&
+          e.state_key === inviterUserId
+        );
+
+        // Extraemos el nombre del invitador (si existe)
+        const inviterName =
+          inviterMemberEvent?.content?.displayname || inviterUserId || null;
+
+        // Agregamos la sala al resultado final
+        invitedRooms.push({
+          room_id: roomId,
+          inviter_user_id: inviterUserId,
+          inviter_name: inviterName,
+        });
       }
     }
 
     return invitedRooms;
   } catch (err) {
-    console.error("getInvitedRoomIds error:", err);
+    console.error("getInvitedRooms error:", err);
     return [];
   }
 };

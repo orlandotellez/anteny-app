@@ -11,7 +11,7 @@ export { searchUsers } from './users';
 export {
   createDirectChat,
   getJoinedRooms,
-  getInvitedRoomIds,
+  getInvitedRooms,
   getRoomDetails,
   getRoomMembers,
   getRoomName,

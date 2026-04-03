@@ -17,3 +17,8 @@ export interface ChatRoom {
   isInvite?: boolean;
 }
 
+export interface InvitedRoom {
+  room_id: string;
+  inviter_user_id?: string;
+  inviter_name?: string;
+}

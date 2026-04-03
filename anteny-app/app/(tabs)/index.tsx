@@ -7,7 +7,6 @@ import {
   View,
   ActivityIndicator,
   Alert,
-  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { THEME } from "@/src/shared/lib/theme";
@@ -16,39 +15,92 @@ import { Header } from "@/src/features/chats/components/Header";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useChats } from "@/src/features/chats/context/ChatContext";
 import { router } from "expo-router";
+import { ChatRoom } from "@/src/shared/types/room";
 
-type FilterType = "all" | "direct" | "groups";
+type FilterType = "all" | "direct" | "groups" | "invites";
 
 export default function ChatScreen() {
-  const { chats, isLoading, loadChats, removeChat } = useChats();
-  
+  const { chats, isLoading, loadChats, removeChat, acceptInvite } = useChats();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
 
-  const handleChatPress = (roomId: string) => {
-    router.push(`/${roomId}`);
+  const handleChatPress = (chat: ChatRoom) => {
+    if (chat.isInvite) {
+      Alert.alert(
+        "Aceptar chat",
+        `¿Quieres aceptar el chat con "${chat.name}"?`,
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Aceptar",
+            onPress: async () => {
+              try {
+                await acceptInvite(chat.room_id);
+              } catch (error) {
+                Alert.alert("Error", "No se pudo aceptar la invitación");
+              }
+            },
+          },
+        ]
+      );
+    } else {
+      router.push(`/${chat.room_id}`);
+    }
   };
 
-  const handleChatLongPress = (roomId: string, chatName: string) => {
-    Alert.alert(
-      "Eliminar chat",
-      `¿Quieres eliminar el chat con "${chatName}"?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await removeChat(roomId);
-            } catch (error) {
-              Alert.alert("Error", "No se pudo eliminar el chat");
-            }
+  const handleChatLongPress = (roomId: string, chatName: string, isInvite?: boolean) => {
+    if (isInvite) {
+      // Para invitaciones, rechazar o aceptar
+      Alert.alert(
+        "Invitación",
+        `¿Qué quieres hacer con "${chatName}"?`,
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Aceptar",
+            onPress: async () => {
+              try {
+                await acceptInvite(roomId);
+              } catch (error) {
+                Alert.alert("Error", "No se pudo aceptar la invitación");
+              }
+            },
           },
-        },
-      ]
-    );
+          {
+            text: "Rechazar",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await removeChat(roomId);
+              } catch (error) {
+                Alert.alert("Error", "No se pudo rechazar la invitación");
+              }
+            },
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        "Eliminar chat",
+        `¿Quieres eliminar el chat con "${chatName}"?`,
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Eliminar",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await removeChat(roomId);
+              } catch (error) {
+                Alert.alert("Error", "No se pudo eliminar el chat");
+              }
+            },
+          },
+        ]
+      );
+    }
   };
 
   // Filtrar chats
@@ -57,15 +109,17 @@ export default function ChatScreen() {
 
     // Filtrar por tipo
     if (activeFilter === "direct") {
-      result = result.filter(chat => chat.isDirect);
+      result = result.filter(chat => chat.isDirect && !chat.isInvite);
     } else if (activeFilter === "groups") {
-      result = result.filter(chat => !chat.isDirect);
+      result = result.filter(chat => !chat.isDirect && !chat.isInvite);
+    } else if (activeFilter === "invites") {
+      result = result.filter(chat => chat.isInvite);
     }
 
     // Filtrar por búsqueda
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(chat => 
+      result = result.filter(chat =>
         chat.name?.toLowerCase().includes(query)
       );
     }
@@ -73,10 +127,15 @@ export default function ChatScreen() {
     return result;
   }, [chats, activeFilter, searchQuery]);
 
+  // Contar invitaciones pendientes
+  const inviteCount = useMemo(() => {
+    return chats.filter(chat => chat.isInvite).length;
+  }, [chats]);
+
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       {/* HEADER */}
-      <Header 
+      <Header
         onSearchToggle={() => setShowSearch(!showSearch)}
         showSearch={showSearch}
         searchQuery={searchQuery}
@@ -85,7 +144,7 @@ export default function ChatScreen() {
 
       {/* FILTROS */}
       <View style={styles.filterContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.filterBtn, activeFilter === "all" && styles.filterBtnActive]}
           onPress={() => setActiveFilter("all")}
         >
@@ -93,7 +152,7 @@ export default function ChatScreen() {
             All
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.filterBtn, activeFilter === "direct" && styles.filterBtnActive]}
           onPress={() => setActiveFilter("direct")}
         >
@@ -101,12 +160,20 @@ export default function ChatScreen() {
             Direct
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.filterBtn, activeFilter === "groups" && styles.filterBtnActive]}
           onPress={() => setActiveFilter("groups")}
         >
           <Text style={[styles.filterText, activeFilter === "groups" && styles.filterTextActive]}>
             Groups
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterBtn, activeFilter === "invites" && styles.filterBtnActive]}
+          onPress={() => setActiveFilter("invites")}
+        >
+          <Text style={[styles.filterText, activeFilter === "invites" && styles.filterTextActive]}>
+            Invites ({inviteCount})
           </Text>
         </TouchableOpacity>
       </View>
@@ -125,11 +192,11 @@ export default function ChatScreen() {
             <ChatItem
               id={item.room_id}
               name={item.name || "Chat"}
-              lastMessage={item.isDirect ? "DM" : "Group chat"}
-              time="now"
-              isOnline={true}
-              onPress={() => handleChatPress(item.room_id)}
-              onLongPress={() => handleChatLongPress(item.room_id, item.name || "Chat")}
+              lastMessage={item.isInvite ? "Tap to accept" : (item.isDirect ? "DM" : "Group chat")}
+              time={item.isInvite ? "Invite" : "now"}
+              isOnline={!item.isInvite}
+              onPress={() => handleChatPress(item)}
+              onLongPress={() => handleChatLongPress(item.room_id, item.name || "Chat", item.isInvite)}
             />
           )}
           contentContainerStyle={{ paddingBottom: 100 }}
