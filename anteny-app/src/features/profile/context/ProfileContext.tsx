@@ -1,7 +1,7 @@
 import { profileStorage } from '@/src/shared/storage/profile-storage';
 import { IUserProfile } from '@/src/shared/types/user';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getProfile } from '@/src/shared/services/matrix';
+import { getProfile } from '@/src/services/matrix';
 import { authStorage } from '@/src/shared/storage/auth-storage';
 
 interface ProfileContextType {

@@ -11,7 +11,7 @@ import {
 import { THEME } from "@/src/shared/lib/theme";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { registerUser, setDisplayName } from "@/src/shared/services/matrix";
+import { registerUser, setDisplayName } from "@/src/services/matrix";
 import { Header } from "@/src/features/auth/register/components/Header";
 import { FormRegister } from "@/src/features/auth/register/components/FormRegister";
 import { HaveAccount } from "@/src/features/auth/register/components/HaveAccount";

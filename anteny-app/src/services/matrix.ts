@@ -1,6 +1,6 @@
-import { ENV } from "../constants/env";
-import { MatrixSession } from "../types/matrix";
-import { IUserProfile } from "../types/user";
+import { ENV } from "../shared/constants/env";
+import { MatrixSession } from "../shared/types/matrix";
+import { IUserProfile } from "../shared/types/user";
 
 export const registerUser = async (username: string, password: string): Promise<MatrixSession> => {
   try {

@@ -12,7 +12,7 @@ import { THEME } from "@/src/shared/lib/theme";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/src/features/auth/login/components/Header";
-import { loginUser } from "@/src/shared/services/matrix";
+import { loginUser } from "@/src/services/matrix";
 import { FormLogin } from "@/src/features/auth/login/components/FormLogin";
 import { NotAccount } from "@/src/features/auth/login/components/NotAccount";
 import { Footer } from "@/src/features/auth/login/components/Footer";
