@@ -45,8 +45,20 @@ export const FormRegister = ({
           placeholder="jhondoe"
           placeholderTextColor={THEME.colors.text_opacity}
           value={values.username}
-          onChangeText={(text) => onChange("username", text)}
+          autoCapitalize="none"
+          autoCorrect={false}
+          onChangeText={(text) => {
+            const clean = text
+              .toLowerCase()
+              .replace(/\s/g, "") // quita espacios
+              .replace(/[^a-z0-9_]/g, ""); // solo letras/números/_
+
+            onChange("username", clean);
+          }}
         />
+        <Text style={styles.helperText}>
+          Only lowercase letters, numbers and underscores
+        </Text>
       </View>
 
       {/* Email */}
@@ -138,5 +150,8 @@ const styles = StyleSheet.create({
     color: THEME.colors.danger,
     marginTop: 10,
     textAlign: "center",
+  },
+  helperText: {
+    color: THEME.colors.text_opacity
   }
 })
