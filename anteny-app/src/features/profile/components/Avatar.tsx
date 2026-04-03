@@ -2,7 +2,12 @@ import { StyleSheet, TouchableOpacity, View, Image, Text } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
 import { THEME } from "@/src/shared/lib/theme";
 
-export const Avatar = () => {
+interface AvatarProps {
+  username?: string;
+  displayName?: string;
+}
+
+export const Avatar = ({ username = "Username", displayName = "Nombre" }: AvatarProps) => {
   return (
     <>
       <View style={styles.avatarSection}>
@@ -19,8 +24,8 @@ export const Avatar = () => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.name}>Orlando Téllez</Text>
-        <Text style={styles.username}>@orlandotellez</Text>
+        <Text style={styles.name}>{displayName}</Text>
+        <Text style={styles.username}>@{username}</Text>
       </View>
     </>
   )

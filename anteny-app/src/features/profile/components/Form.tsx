@@ -1,22 +1,59 @@
 import { StyleSheet, View } from "react-native"
 import { ProfileField } from "./ProfileField"
 import { THEME } from "@/src/shared/lib/theme"
+import { useAuth } from "@/src/features/auth/context/AuthContext"
+import { setDisplayName } from "@/src/shared/services/matrix"
+import { useProfile } from "@/src/features/profile/context/ProfileContext"
+import { getUsernameFromUserId } from "@/src/shared/utils/format"
 
-export const Form = () => {
+interface FormProps {
+  onDisplayNameUpdate?: (newName: string) => Promise<void>;
+}
+
+export const Form = ({ onDisplayNameUpdate }: FormProps) => {
+  const { session } = useAuth();
+  const { profile } = useProfile();
+
+  const handleDisplayNameSave = async (newDisplayName: string) => {
+    if (!session?.access_token || !session?.user_id) {
+      throw new Error("No session");
+    }
+
+    // Actualizar en Matrix
+    await setDisplayName(session.user_id, session.access_token, newDisplayName);
+
+    // Actualizar localmente
+    if (onDisplayNameUpdate) {
+      await onDisplayNameUpdate(newDisplayName);
+    }
+  };
+
+  const username = session ? getUsernameFromUserId(session.user_id) : null;
+  const displayName = profile?.displayName || "";
+
   return (
     <>
       <View style={styles.section}>
         <ProfileField
           icon="person"
           label="Name"
-          value="Orlando Téllez"
+          value={displayName}
           helper="This name will be visible to your contacts."
+          editable
+          onSave={handleDisplayNameSave}
+        />
+
+        <ProfileField
+          icon="at"
+          label="Username"
+          value={username || ""}
+          helper="Your unique identifier."
         />
 
         <ProfileField
           icon="information-circle"
           label="About"
-          value="Design enthusiast & developer"
+          value={profile?.status || "Design enthusiast & developer"}
           multiline
         />
 
