@@ -1,44 +1,78 @@
+import { Alert } from "react-native";
 import { THEME } from "@/src/shared/lib/theme";
-import type { IChatItem } from "@/src/shared/types/chats";
-import { router } from "expo-router";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { getColorFromName } from "@/src/shared/utils/format";
 
-export const ChatItem = ({ id, avatar, name, message, time, unread, isOnline }: IChatItem) => {
+interface ChatItemProps {
+  id: string;
+  name: string;
+  lastMessage?: string;
+  message?: string;
+  time?: string;
+  unread?: number;
+  isOnline?: boolean;
+  onPress?: () => void;
+  onLongPress?: () => void;
+}
+
+export const ChatItem = ({ id, name, lastMessage, message, time, unread, isOnline, onPress, onLongPress }: ChatItemProps) => {
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    }
+  };
+
+  const handleLongPress = () => {
+    if (onLongPress) {
+      onLongPress();
+    } else {
+      Alert.alert(
+        "Eliminar chat",
+        `¿Quieres eliminar el chat con "${name}"?`,
+        [
+          { text: "Cancelar", style: "cancel" },
+          { text: "Eliminar", style: "destructive" },
+        ]
+      );
+    }
+  };
+
+  const avatarColor = getColorFromName(name);
+  const initial = name ? name[0].toUpperCase() : "?";
+
   return (
-    <>
-      <TouchableOpacity style={styles.chatItem} onPress={() => router.push(`/${id}`)}>
-        <View>
-          <Image source={{ uri: avatar }} style={styles.avatar} />
-          {isOnline && <View style={styles.onlineDot} />}
+    <TouchableOpacity 
+      style={styles.chatItem} 
+      onPress={handlePress}
+      onLongPress={handleLongPress}
+      delayLongPress={500}
+    >
+      <View>
+        <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
+          <Text style={styles.avatarText}>{initial}</Text>
+        </View>
+        {isOnline && <View style={styles.onlineDot} />}
+      </View>
+
+      <View style={styles.chatContent}>
+        <View style={styles.chatHeader}>
+          <Text style={styles.name} numberOfLines={1}>{name}</Text>
+          <Text style={styles.time}>{time || "now"}</Text>
         </View>
 
-        <View style={styles.chatContent}>
-          <View style={styles.chatHeader}>
-            <Text style={styles.name}>{name}</Text>
-            <Text
-              style={[
-                styles.time,
-                unread ? { color: THEME.colors.primary, fontWeight: "bold" } : null,
-              ]}
-            >
-              {time}
-            </Text>
-          </View>
+        <View style={styles.messageRow}>
+          <Text style={styles.message} numberOfLines={1}>
+            {lastMessage || message || "Chat"}
+          </Text>
 
-          <View style={styles.messageRow}>
-            <Text style={styles.message} numberOfLines={1}>
-              {message}
-            </Text>
-
-            {unread ? (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{unread}</Text>
-              </View>
-            ) : null}
-          </View>
+          {unread ? (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unread}</Text>
+            </View>
+          ) : null}
         </View>
-      </TouchableOpacity>
-    </>
+      </View>
+    </TouchableOpacity>
   )
 }
 
@@ -53,6 +87,14 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  avatarText: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "bold",
   },
 
   onlineDot: {
@@ -73,12 +115,15 @@ const styles = StyleSheet.create({
   chatHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
 
   name: {
     color: THEME.colors.text_title,
     fontWeight: "bold",
     fontSize: 16,
+    flex: 1,
+    marginRight: 8,
   },
 
   time: {
@@ -110,4 +155,3 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
-

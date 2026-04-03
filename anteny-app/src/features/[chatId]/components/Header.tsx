@@ -1,39 +1,43 @@
-import { Image, Text, TouchableOpacity, View, StyleSheet } from "react-native"
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native"
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { THEME } from "@/src/shared/lib/theme";
-import { IUser } from "@/src/shared/types/user";
+import { getColorFromName } from "@/src/shared/utils/format";
 
-export const Header = ({ avatar, name, isOnline, status }: IUser) => {
+interface HeaderProps {
+  avatar?: string;
+  name: string;
+  isOnline?: boolean;
+  status?: string;
+}
+
+export const Header = ({ name, isOnline, status }: HeaderProps) => {
+  const avatarColor = getColorFromName(name);
+  const initial = name ? name[0].toUpperCase() : "?";
+
   return (
-    <>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={THEME.colors.text_opacity} />
-          </TouchableOpacity>
+    <View style={styles.header}>
+      <View style={styles.headerLeft}>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color={THEME.colors.text_opacity} />
+        </TouchableOpacity>
 
-          <View style={styles.userInfo}>
-            {avatar ? (
-              <Image source={{ uri: avatar }} style={styles.avatar} />
-            ) : (
-              <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                <Ionicons name="person" size={20} color={THEME.colors.text_opacity} />
-              </View>
-            )}
-            <View>
-              <Text style={styles.name}>{name}</Text>
-              <Text style={styles.status}>{isOnline ? "online" : status}</Text>
-            </View>
+        <View style={styles.userInfo}>
+          <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
+            <Text style={styles.avatarText}>{initial}</Text>
+          </View>
+          <View>
+            <Text style={styles.name}>{name}</Text>
+            <Text style={styles.status}>{isOnline ? "online" : status}</Text>
           </View>
         </View>
-
-        <View style={styles.headerRight}>
-          <Ionicons name="call-outline" size={22} color={THEME.colors.text_opacity} />
-          <MaterialIcons name="more-vert" size={22} color={THEME.colors.text_opacity} />
-        </View>
       </View>
-    </>
+
+      <View style={styles.headerRight}>
+        <Ionicons name="call-outline" size={22} color={THEME.colors.text_opacity} />
+        <MaterialIcons name="more-vert" size={22} color={THEME.colors.text_opacity} />
+      </View>
+    </View>
   )
 }
 
@@ -67,11 +71,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-  },
-  avatarPlaceholder: {
-    backgroundColor: "#2a2a2a",
     justifyContent: "center",
     alignItems: "center",
+  },
+  avatarText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   name: {
     color: THEME.colors.text_title,
@@ -81,5 +87,4 @@ const styles = StyleSheet.create({
     color: THEME.colors.primary,
     fontSize: 12,
   },
-
 })
