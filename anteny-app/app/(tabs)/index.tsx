@@ -1,31 +1,151 @@
+import { useState, useMemo } from "react";
 import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Text,
+  View,
+  ActivityIndicator,
+  Alert,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { THEME } from "@/src/shared/lib/theme";
 import { ChatItem } from "@/src/features/chats/components/ChatItem";
 import { Header } from "@/src/features/chats/components/Header";
-import type { IChatItem } from "@/src/shared/types/chats"
-import { chats } from "@/src/shared/data/chats";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useChats } from "@/src/features/chats/context/ChatContext";
+import { router } from "expo-router";
+
+type FilterType = "all" | "direct" | "groups";
 
 export default function ChatScreen() {
+  const { chats, isLoading, loadChats, removeChat } = useChats();
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+
+  const handleChatPress = (roomId: string) => {
+    router.push(`/${roomId}`);
+  };
+
+  const handleChatLongPress = (roomId: string, chatName: string) => {
+    Alert.alert(
+      "Eliminar chat",
+      `¿Quieres eliminar el chat con "${chatName}"?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await removeChat(roomId);
+            } catch (error) {
+              Alert.alert("Error", "No se pudo eliminar el chat");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Filtrar chats
+  const filteredChats = useMemo(() => {
+    let result = chats;
+
+    // Filtrar por tipo
+    if (activeFilter === "direct") {
+      result = result.filter(chat => chat.isDirect);
+    } else if (activeFilter === "groups") {
+      result = result.filter(chat => !chat.isDirect);
+    }
+
+    // Filtrar por búsqueda
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(chat => 
+        chat.name?.toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  }, [chats, activeFilter, searchQuery]);
+
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       {/* HEADER */}
-      <Header />
+      <Header 
+        onSearchToggle={() => setShowSearch(!showSearch)}
+        showSearch={showSearch}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+
+      {/* FILTROS */}
+      <View style={styles.filterContainer}>
+        <TouchableOpacity 
+          style={[styles.filterBtn, activeFilter === "all" && styles.filterBtnActive]}
+          onPress={() => setActiveFilter("all")}
+        >
+          <Text style={[styles.filterText, activeFilter === "all" && styles.filterTextActive]}>
+            All
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.filterBtn, activeFilter === "direct" && styles.filterBtnActive]}
+          onPress={() => setActiveFilter("direct")}
+        >
+          <Text style={[styles.filterText, activeFilter === "direct" && styles.filterTextActive]}>
+            Direct
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.filterBtn, activeFilter === "groups" && styles.filterBtnActive]}
+          onPress={() => setActiveFilter("groups")}
+        >
+          <Text style={[styles.filterText, activeFilter === "groups" && styles.filterTextActive]}>
+            Groups
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* LIST */}
-      <FlatList<IChatItem>
-        data={chats}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ChatItem {...item} />
-        )}
-        contentContainerStyle={{ paddingBottom: 100 }}
-      />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={THEME.colors.primary} />
+          <Text style={styles.loadingText}>Cargando chats...</Text>
+        </View>
+      ) : filteredChats.length > 0 ? (
+        <FlatList
+          data={filteredChats}
+          keyExtractor={(item) => item.room_id}
+          renderItem={({ item }) => (
+            <ChatItem
+              id={item.room_id}
+              name={item.name || "Chat"}
+              lastMessage={item.isDirect ? "DM" : "Group chat"}
+              time="now"
+              isOnline={true}
+              onPress={() => handleChatPress(item.room_id)}
+              onLongPress={() => handleChatLongPress(item.room_id, item.name || "Chat")}
+            />
+          )}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          refreshing={isLoading}
+          onRefresh={loadChats}
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>
+            {searchQuery ? "No se encontraron chats" : "No tienes chats aún"}
+          </Text>
+          <Text style={styles.emptySubtext}>
+            {searchQuery ? "Intenta con otro término" : "Busca un usuario y crea un chat directo"}
+          </Text>
+        </View>
+      )}
 
       {/* FAB */}
       <TouchableOpacity style={styles.fab}>
@@ -39,6 +159,53 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: THEME.colors.background,
+  },
+  filterContainer: {
+    flexDirection: "row",
+    padding: 12,
+    gap: 8,
+  },
+  filterBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: THEME.colors.secondary,
+  },
+  filterBtnActive: {
+    backgroundColor: THEME.colors.primary,
+  },
+  filterText: {
+    color: THEME.colors.text_opacity,
+    fontSize: 14,
+  },
+  filterTextActive: {
+    color: "#000",
+    fontWeight: "600",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    color: "#888",
+    marginTop: 10,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+  emptyText: {
+    color: THEME.colors.text_title,
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  emptySubtext: {
+    color: "#888",
+    marginTop: 8,
+    textAlign: "center",
   },
   fab: {
     position: "absolute",
