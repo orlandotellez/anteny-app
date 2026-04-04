@@ -62,11 +62,13 @@ export const processSyncResponse = (
   newInvites: string[];
   joinedRooms: string[];
   leftRooms: string[];
+  redactions: Map<string, string[]>; // roomId -> array of redacted event IDs
 } => {
   const newMessages = new Map<string, MatrixEvent[]>();
   const newInvites: string[] = [];
   const joinedRooms: string[] = [];
   const leftRooms: string[] = [];
+  const redactions = new Map<string, string[]>();
 
   if (syncData.rooms?.join) {
     for (const [roomId, roomData] of Object.entries(syncData.rooms.join)) {
@@ -76,6 +78,16 @@ export const processSyncResponse = (
           e.type === "m.room.message" &&
           e.sender !== currentUserId
       );
+
+      // Detect redaction events
+      const redactedEventIds = timelineEvents
+        .filter((e) => e.type === "m.room.redaction")
+        .map((e) => e.redacts)
+        .filter((id): id is string => !!id);
+
+      if (redactedEventIds.length > 0) {
+        redactions.set(roomId, redactedEventIds);
+      }
 
       if (messageEvents.length > 0) {
         newMessages.set(roomId, messageEvents);
@@ -102,5 +114,6 @@ export const processSyncResponse = (
     newInvites,
     joinedRooms,
     leftRooms,
+    redactions,
   };
 };

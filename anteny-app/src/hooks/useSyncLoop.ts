@@ -10,6 +10,7 @@ interface UseSyncLoopOptions {
   onInvite?: (roomId: string) => void;
   onJoin?: (roomId: string) => void;
   onLeave?: (roomId: string) => void;
+  onRedaction?: (roomId: string, redactedEventIds: string[]) => void;
   onError?: (error: Error) => void;
   enabled?: boolean;
 }
@@ -32,6 +33,7 @@ export const useSyncLoop = (options: UseSyncLoopOptions = {}): UseSyncLoopReturn
     onInvite,
     onJoin,
     onLeave,
+    onRedaction,
     onError,
     enabled = true,
   } = options;
@@ -88,10 +90,17 @@ export const useSyncLoop = (options: UseSyncLoopOptions = {}): UseSyncLoopReturn
         nextBatchRef.current = syncData.next_batch;
         setLastSyncTime(Date.now());
 
-        const { newMessages, newInvites, joinedRooms, leftRooms } = processSyncResponse(
+        const { newMessages, newInvites, joinedRooms, leftRooms, redactions } = processSyncResponse(
           syncData,
           session.user_id
         );
+
+        redactions.forEach((redactedEventIds, roomId) => {
+          if (redactedEventIds.length > 0) {
+            console.log(`[useSyncLoop] Redactions in ${roomId}:`, redactedEventIds);
+            onRedaction?.(roomId, redactedEventIds);
+          }
+        });
 
         if (newInvites.length > 0) {
           console.log('[useSyncLoop] New invites:', newInvites);
@@ -137,7 +146,7 @@ export const useSyncLoop = (options: UseSyncLoopOptions = {}): UseSyncLoopReturn
     isRunningRef.current = false;
     setIsRunning(false);
     console.log('[useSyncLoop] Loop stopped');
-  }, [onMessages, onInvite, onJoin, onLeave, onError]);
+  }, [onMessages, onInvite, onJoin, onLeave, onRedaction, onError]);
 
   const startSync = useCallback(() => {
     if (isRunningRef.current) {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getRoomMessages, sendRoomMessage } from "../services/matrix";
+import { getRoomMessages, sendRoomMessage, redactMessage } from "../services/matrix";
 import { MatrixEvent } from "../shared/types/matrixEvent";
 import { useSyncLoop } from "./useSyncLoop";
 import { authStorage } from "../storage/auth-storage";
@@ -9,6 +9,7 @@ interface UseRoomMessagesOptions {
   roomId: string;
   initialLimit?: number;
   onNewMessage?: (message: Message) => void;
+  onMessageDeleted?: (eventId: string) => void;
   enabled?: boolean;
 }
 
@@ -18,7 +19,9 @@ interface UseRoomMessagesReturn {
   hasMore: boolean;
   loadMore: () => Promise<void>;
   sendMessage: (body: string) => Promise<boolean>;
+  deleteMessage: (eventId: string) => Promise<boolean>;
   isSending: boolean;
+  isDeleting: boolean;
   refresh: () => Promise<void>;
 }
 
@@ -29,6 +32,7 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const cursorRef = useRef<string | null>(null);
   const initializedRef = useRef(false);
@@ -151,6 +155,38 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
     }
   }, [roomId, onNewMessage]);
 
+  const deleteMessage = useCallback(async (eventId: string): Promise<boolean> => {
+    if (!roomId || !eventId) return false;
+
+    const session = await authStorage.getSession();
+    if (!session?.access_token) return false;
+
+    setIsDeleting(true);
+
+    try {
+      const success = await redactMessage(roomId, eventId, session.access_token);
+
+      if (success) {
+        // marcar como eliminado y reemplazar contenido con Message deleted
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === eventId
+              ? { ...msg, body: "Message deleted", isDeleted: true }
+              : msg
+          )
+        );
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('[useRoomMessages] Error deleting:', error);
+      return false;
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [roomId]);
+
   const refresh = useCallback(async () => {
     cursorRef.current = null;
     setMessages([]);
@@ -180,8 +216,24 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
     }
   }, [roomId, onNewMessage, processEventToMessage]);
 
+  // redacta las eliminaciones cuando el otro usuario elimina un mensaje
+  const handleRedaction = useCallback((eventRoomId: string, redactedEventIds: string[]) => {
+    if (eventRoomId !== roomId) return;
+
+    if (redactedEventIds.length > 0) {
+      setMessages(prev =>
+        prev.map(msg =>
+          redactedEventIds.includes(msg.id)
+            ? { ...msg, body: "Message deleted", isDeleted: true }
+            : msg
+        )
+      );
+    }
+  }, [roomId]);
+
   const syncLoop = useSyncLoop({
     onMessages: handleNewMessages,
+    onRedaction: handleRedaction,
     enabled: enabled,
   });
 
@@ -209,7 +261,9 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
     hasMore,
     loadMore,
     sendMessage,
+    deleteMessage,
     isSending,
+    isDeleting,
     refresh,
   };
 };

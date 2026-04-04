@@ -46,10 +46,11 @@ export const redactMessage = async (
   reason?: string
 ): Promise<boolean> => {
   try {
+    // Synapse implements POST endpoint (unspecced but supported)
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/redact/${encodeURIComponent(eventId)}`,
       {
-        method: "PUT",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,

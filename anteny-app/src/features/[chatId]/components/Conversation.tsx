@@ -1,5 +1,5 @@
 import { THEME } from "@/src/shared/lib/theme"
-import { Image, StyleSheet, Text, View, ActivityIndicator } from "react-native"
+import { Image, StyleSheet, Text, View, ActivityIndicator, Pressable, Alert } from "react-native"
 import { Message } from "@/src/shared/types/matrixMessage";
 import { formatDate } from "@/src/shared/utils/time";
 
@@ -8,6 +8,8 @@ interface ConversationProps {
   currentUserId: string;
   formatTime: (timestamp: number) => string;
   isLoadingMessages?: boolean;
+  onDeleteMessage?: (eventId: string) => void;
+  isDeleting?: boolean;
 }
 
 export const Conversation = ({
@@ -15,8 +17,28 @@ export const Conversation = ({
   currentUserId,
   formatTime,
   isLoadingMessages = false,
+  onDeleteMessage,
+  isDeleting = false,
 }: ConversationProps) => {
   const isOwnMessage = (sender: string) => sender === currentUserId;
+
+  const handleLongPress = (message: Message) => {
+    // Only allow deleting own messages
+    if (!isOwnMessage(message.sender)) return;
+
+    Alert.alert(
+      "Delete Message",
+      "Are you sure you want to delete this message for everyone?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive",
+          onPress: () => onDeleteMessage?.(message.id)
+        },
+      ]
+    );
+  };
 
   const groupMessagesByDate = () => {
     const groups: { date: string; messages: Message[] }[] = [];
@@ -60,30 +82,46 @@ export const Conversation = ({
 
           {group.messages.map((message) => {
             const isOwn = isOwnMessage(message.sender);
+            const isDeleted = message.isDeleted;
 
-            if (message.msgtype === "m.image") {
+            if (message.msgtype === "m.image" && !isDeleted) {
               return (
-                <View key={message.id} style={isOwn ? styles.sent : styles.received}>
-                  <View style={isOwn ? styles.sentBubble : styles.receivedBubble}>
-                    <Image
-                      source={{ uri: message.body }}
-                      style={styles.image}
-                    />
-                    <Text style={styles.time}>{formatTime(message.timestamp)}</Text>
+                <Pressable
+                  key={message.id}
+                  onLongPress={() => handleLongPress(message)}
+                  delayLongPress={500}
+                >
+                  <View style={isOwn ? styles.sent : styles.received}>
+                    <View style={isOwn ? styles.sentBubble : styles.receivedBubble}>
+                      <Image
+                        source={{ uri: message.body }}
+                        style={styles.image}
+                      />
+                      <Text style={styles.time}>{formatTime(message.timestamp)}</Text>
+                    </View>
                   </View>
-                </View>
+                </Pressable>
               );
             }
 
             return (
-              <View key={message.id} style={isOwn ? styles.sent : styles.received}>
-                <View style={isOwn ? styles.sentBubble : styles.receivedBubble}>
-                  <Text style={styles.text}>{message.body}</Text>
-                  <View style={isOwn ? styles.sentMeta : styles.receivedMeta}>
-                    <Text style={styles.time}>{formatTime(message.timestamp)}</Text>
+              <Pressable
+                key={message.id}
+                onLongPress={() => handleLongPress(message)}
+                delayLongPress={500}
+                disabled={!isOwn}
+              >
+                <View style={isOwn ? styles.sent : styles.received}>
+                  <View style={isOwn ? styles.sentBubble : styles.receivedBubble}>
+                    <Text style={[styles.text, isDeleted && styles.deletedText]}>
+                      {isDeleted ? "Message deleted" : message.body}
+                    </Text>
+                    <View style={isOwn ? styles.sentMeta : styles.receivedMeta}>
+                      <Text style={styles.time}>{formatTime(message.timestamp)}</Text>
+                    </View>
                   </View>
                 </View>
-              </View>
+              </Pressable>
             );
           })}
         </View>
@@ -148,6 +186,10 @@ const styles = StyleSheet.create({
 
   text: {
     color: "#e2e2e2",
+  },
+  deletedText: {
+    color: "#888888",
+    fontStyle: "italic",
   },
   time: {
     fontSize: 10,

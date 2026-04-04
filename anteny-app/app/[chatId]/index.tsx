@@ -39,7 +39,9 @@ export default function ChatScreen() {
     hasMore,
     loadMore,
     sendMessage,
+    deleteMessage,
     isSending,
+    isDeleting,
   } = useRoomMessages({
     roomId: chatId || "",
     initialLimit: 50,
@@ -190,6 +192,8 @@ export default function ChatScreen() {
               currentUserId={session?.user_id || ""}
               formatTime={formatTime}
               isLoadingMessages={isLoadingMessages}
+              onDeleteMessage={deleteMessage}
+              isDeleting={isDeleting}
             />
           </ScrollView>
         </View>

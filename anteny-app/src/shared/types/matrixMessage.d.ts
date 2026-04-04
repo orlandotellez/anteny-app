@@ -6,5 +6,6 @@ export interface Message {
   timestamp: number;
   type: string;
   msgtype?: string;
+  isDeleted?: boolean;
 }
 
