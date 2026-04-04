@@ -302,3 +302,34 @@ export const joinRoom = async (roomId: string, token: string) => {
     throw err;
   }
 };
+
+export const rejectInvite = async (roomId: string, token: string) => {
+  try {
+    console.log('[rejectInvite] Rejecting invite for room:', roomId);
+
+    const res = await fetch(
+      `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/leave`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          reason: "Rejected invitation",
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Error rechazando la invitación");
+    }
+
+    return true;
+  } catch (err) {
+    console.error("rejectInvite error:", err);
+    throw err;
+  }
+};

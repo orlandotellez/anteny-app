@@ -20,7 +20,7 @@ import { ChatRoom } from "@/src/shared/types/room";
 type FilterType = "all" | "direct" | "groups" | "invites";
 
 export default function ChatScreen() {
-  const { chats, isLoading, loadChats, removeChat, acceptInvite } = useChats();
+  const { chats, isLoading, loadChats, removeChat, acceptInvite, rejectInvite } = useChats();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -73,7 +73,7 @@ export default function ChatScreen() {
             style: "destructive",
             onPress: async () => {
               try {
-                await removeChat(roomId);
+                await rejectInvite(roomId);
               } catch (error) {
                 Alert.alert("Error", "No se pudo rechazar la invitación");
               }

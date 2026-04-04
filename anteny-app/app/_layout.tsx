@@ -87,7 +87,7 @@ export default function RootLayout() {
                       contentStyle: {
                         backgroundColor: THEME.colors.secondary,
                       },
-                      animation: "slide_from_right",
+                      animation: "none",
                     }
                     }
                   >

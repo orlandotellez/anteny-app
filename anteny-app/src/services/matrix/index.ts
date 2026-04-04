@@ -18,4 +18,5 @@ export {
   isRoomDirect,
   leaveRoom,
   joinRoom,
+  rejectInvite,
 } from './rooms';
