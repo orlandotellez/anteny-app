@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
   actionItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    padding: 12,
   },
 
   actionIcon: {

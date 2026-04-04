@@ -21,7 +21,6 @@ export const Header = ({ onSearchToggle, showSearch, searchQuery, onSearchChange
           <TouchableOpacity onPress={onSearchToggle}>
             <Ionicons name="search" size={22} color={THEME.colors.text_opacity} />
           </TouchableOpacity>
-          <MaterialIcons name="more-vert" size={22} color={THEME.colors.text_opacity} />
         </View>
       </View>
 

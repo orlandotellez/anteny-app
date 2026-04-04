@@ -6,13 +6,14 @@ export const Header = () => {
   return (
     <>
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle}>Profile</Text>
-        </View>
+        <View style={styles.headerTop}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerTitle}>Profile</Text>
+          </View>
 
-        <TouchableOpacity style={styles.iconBtn}>
-          <MaterialIcons name="more-vert" size={22} color={THEME.colors.text_opacity} />
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.iconBtn}>
+          </TouchableOpacity>
+        </View>
       </View>
 
     </>
@@ -21,12 +22,15 @@ export const Header = () => {
 
 const styles = StyleSheet.create({
   header: {
-    height: 60,
     backgroundColor: THEME.colors.secondary,
+    padding: 16,
+  },
+  headerTop: {
+
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+
   },
   headerLeft: {
     flexDirection: "row",
