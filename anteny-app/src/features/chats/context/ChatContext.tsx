@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode, useMemo } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { getJoinedRooms, getInvitedRooms, getRoomMembers, leaveRoom, getRoomName, joinRoom, rejectInvite } from '@/src/services/matrix';
-import { authStorage } from '@/src/shared/storage/auth-storage';
 import { getUsernameFromUserId } from '@/src/shared/utils/format';
-import { ChatRoom } from '@/src/shared/types/room';
+import { ChatRoom } from '@/src/shared/types/matrixRoom';
+import { authStorage } from '@/src/storage/auth-storage';
 
 interface ChatContextType {
   chats: ChatRoom[];

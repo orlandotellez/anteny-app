@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-import { MatrixSession } from '../types/matrix';
+import { MatrixSession } from '../shared/types/matrixSession';
 
 const SESSION_KEY = "matrix_session"
 

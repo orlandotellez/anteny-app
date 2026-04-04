@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-import { IUserProfile } from '../types/user';
+import { IUserProfile } from '../shared/types/user';
 
 const PROFILE_KEY = "matrix_profile"
 
