@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 
-type ChatIdRoutes = "index"
+type ChatIdRoutes = "index" | "profile"
 
 interface StackConfig {
   name: ChatIdRoutes;
@@ -13,7 +13,12 @@ const CHAT_ID_STACK: StackConfig[] = [
   {
     name: "index",
     headerShown: false
+  },
+  {
+    name: "profile",
+    headerShown: false
   }
+
 ];
 
 export default function ChatIdLayout() {
@@ -21,6 +26,7 @@ export default function ChatIdLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
+        animation: "none"
       }}
     >
       {CHAT_ID_STACK.map((route) => (

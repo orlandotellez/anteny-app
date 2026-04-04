@@ -7,7 +7,7 @@ import { useEffect, useState, ReactNode } from 'react';
 import { ProfileProvider } from '@/src/features/profile/context/ProfileContext';
 import { ChatProvider } from '@/src/features/chats/context/ChatContext';
 
-type RootRoutes = "(tabs)" | "[chatId]" | "(auth)";
+type RootRoutes = "(tabs)" | "[chatId]" | "(auth)" | "contacts/profile";
 
 interface StackConfig {
   name: RootRoutes;
@@ -27,6 +27,10 @@ const ROOT_STACK: StackConfig[] = [
   },
   {
     name: "(auth)",
+    headerShown: false
+  },
+  {
+    name: "contacts/profile",
     headerShown: false
   },
 ];

@@ -2,20 +2,8 @@ import { Text, TouchableOpacity, View, StyleSheet } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { THEME } from "@/src/shared/lib/theme";
-import { getColorFromName } from "@/src/shared/utils/format";
 
-interface HeaderProps {
-  avatar?: string;
-  name: string;
-  isOnline?: boolean;
-  status?: string;
-  onProfilePress?: () => void;
-}
-
-export const Header = ({ name, isOnline, status, onProfilePress }: HeaderProps) => {
-  const avatarColor = getColorFromName(name);
-  const initial = name ? name[0].toUpperCase() : "?";
-
+export const Header = () => {
   return (
     <View style={styles.header}>
       <View style={styles.headerLeft}>
@@ -23,18 +11,11 @@ export const Header = ({ name, isOnline, status, onProfilePress }: HeaderProps) 
           <Ionicons name="arrow-back" size={24} color={THEME.colors.text_opacity} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.userInfo} onPress={onProfilePress} disabled={!onProfilePress}>
-          <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
-            <Text style={styles.avatarText}>{initial}</Text>
-          </View>
+        <TouchableOpacity style={styles.userInfo} >
           <View>
-            <Text style={styles.name}>{name}</Text>
+            <Text style={styles.name}>Info. del contacto</Text>
           </View>
         </TouchableOpacity>
-      </View>
-
-      <View style={styles.headerRight}>
-        <Ionicons name="call-outline" size={22} color={THEME.colors.text_opacity} />
       </View>
     </View>
   )
@@ -44,7 +25,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     backgroundColor: THEME.colors.secondary,
   },
@@ -59,7 +40,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   iconBtn: {
-    padding: 4,
+    padding: 7,
+    paddingLeft: 6,
   },
   userInfo: {
     flexDirection: "row",

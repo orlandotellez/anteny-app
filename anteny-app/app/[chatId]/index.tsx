@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { THEME } from "@/src/shared/lib/theme";
 import { formatDate } from "@/src/shared/utils/time";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import { Header } from "@/src/features/[chatId]/components/Header";
 import { Input } from "@/src/features/[chatId]/components/Input";
 import { Conversation } from "@/src/features/[chatId]/components/Conversation";
@@ -213,6 +213,18 @@ export default function ChatScreen() {
           name={chatData.name}
           isOnline={true}
           status={chatData.isDirect ? "DM" : "Group"}
+          onProfilePress={() => {
+            if (chatData.isDirect && chatData.otherUser) {
+              router.push({
+                pathname: "/[chatId]/profile",
+                params: {
+                  chatId,
+                  userId: chatData.otherUser.user_id,
+                  displayName: chatData.otherUser.displayname || chatData.name,
+                },
+              });
+            }
+          }}
         />
 
         {/* CHAT */}

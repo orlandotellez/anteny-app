@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { THEME } from "@/src/shared/lib/theme";
-import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Alert } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { createDirectChat } from "@/src/services/matrix";
@@ -17,6 +17,7 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
   const { session } = useAuth();
   const { loadChats } = useChats();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   const hasExistingChat = !!existingChatRoomId;
 
@@ -46,6 +47,19 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
     }
   };
 
+  const handleViewProfile = () => {
+    // Navegar a la pantalla de perfil del contacto
+    router.push({
+      pathname: "/contacts/profile",
+      params: {
+        userId: user_id,
+        displayName: displayname,
+        hasChat: hasExistingChat ? "true" : "false",
+        chatId: existingChatRoomId || "",
+      },
+    });
+  };
+
   return (
     <View style={styles.row}>
       <View style={styles.avatar}>
@@ -61,9 +75,18 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
         </Text>
       </View>
 
-      <TouchableOpacity style={styles.profileButton}>
-        <Text style={styles.viewProfile}>View profile</Text>
-        <Feather name="user" size={18} color={THEME.colors.primary} />
+      <TouchableOpacity
+        style={[styles.profileButton, isLoadingProfile && styles.inviteButtonDisabled]}
+        onPress={handleViewProfile}
+        disabled={isLoadingProfile}
+      >
+        {isLoadingProfile ? (
+          <ActivityIndicator size="small" color={THEME.colors.primary} />
+        ) : (
+          <>
+            <Feather name="user" size={18} color={THEME.colors.primary} />
+          </>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity
