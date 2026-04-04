@@ -11,7 +11,7 @@ import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { THEME } from "@/src/shared/lib/theme";
-import { getColorFromName } from "@/src/shared/utils/format";
+import { getColorFromName, getUsernameFromUserId } from "@/src/shared/utils/format";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { createDirectChat } from "@/src/services/matrix";
 import { useChats } from "@/src/features/chats/context/ChatContext";
@@ -40,8 +40,11 @@ const ProfileContact = ({
   onInvite,
   onGoToChat,
 }: ProfileContactProps) => {
-  const avatarColor = getColorFromName(displayName);
-  const initial = displayName ? displayName[0].toUpperCase() : "?";
+  // Si hay displayname usarlo (que no sea "undefined" o vacío), si no usar getUsernameFromUserId
+  const hasValidDisplayName = displayName && displayName !== "undefined" && displayName !== "";
+  const displayNameToShow = hasValidDisplayName ? displayName : getUsernameFromUserId(userId);
+  const avatarColor = getColorFromName(displayNameToShow);
+  const initial = displayNameToShow ? displayNameToShow[0].toUpperCase() : "?";
 
   const fields: UserInfoField[] = [
     {
@@ -69,7 +72,7 @@ const ProfileContact = ({
           <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
             <Text style={styles.avatarText}>{initial}</Text>
           </View>
-          <Text style={styles.name}>{displayName}</Text>
+          <Text style={styles.name}>{displayNameToShow}</Text>
         </View>
 
         {/* INFO */}
@@ -97,7 +100,7 @@ const ProfileContact = ({
           ) : (
             <TouchableOpacity style={styles.inviteBtn} onPress={onInvite}>
               <Feather name="user-plus" size={20} color="#fff" />
-              <Text style={styles.inviteText}>Invitar a {displayName}</Text>
+              <Text style={styles.inviteText}>Invitar a {displayNameToShow}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -109,7 +112,7 @@ const ProfileContact = ({
 export default function ContactProfileScreen() {
   const { userId, displayName, chatId, hasChat } = useLocalSearchParams<{
     userId: string;
-    displayName: string;
+    displayName?: string;
     chatId?: string;
     hasChat?: string;
   }>();
@@ -132,7 +135,7 @@ export default function ContactProfileScreen() {
         params: {
           chatId: room_id,
           userId: userId,
-          displayName: displayName,
+          displayName: displayName || "",
           isInvited: "true",
         },
       });
@@ -148,9 +151,12 @@ export default function ContactProfileScreen() {
     }
   };
 
+  // Usar displayName si está definido y no es vacío, si no usar getUsernameFromUserId
+  const finalDisplayName = displayName && displayName !== "" ? displayName : undefined;
+
   return (
     <ProfileContact
-      displayName={displayName || "Usuario"}
+      displayName={finalDisplayName}
       userId={userId || ""}
       hasExistingChat={hasExistingChat}
       existingChatRoomId={chatId}

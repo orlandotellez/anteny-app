@@ -10,12 +10,11 @@ interface ChatItemProps {
   message?: string;
   time?: string;
   unread?: number;
-  isOnline?: boolean;
   onPress?: () => void;
   onLongPress?: () => void;
 }
 
-export const ChatItem = ({ id, name, lastMessage, message, time, unread, isOnline, onPress, onLongPress }: ChatItemProps) => {
+export const ChatItem = ({ id, name, lastMessage, message, time, unread, onPress, onLongPress }: ChatItemProps) => {
   const handlePress = () => {
     if (onPress) {
       onPress();
@@ -41,8 +40,8 @@ export const ChatItem = ({ id, name, lastMessage, message, time, unread, isOnlin
   const initial = name ? name[0].toUpperCase() : "?";
 
   return (
-    <TouchableOpacity 
-      style={styles.chatItem} 
+    <TouchableOpacity
+      style={styles.chatItem}
       onPress={handlePress}
       onLongPress={handleLongPress}
       delayLongPress={500}
@@ -51,7 +50,6 @@ export const ChatItem = ({ id, name, lastMessage, message, time, unread, isOnlin
         <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
           <Text style={styles.avatarText}>{initial}</Text>
         </View>
-        {isOnline && <View style={styles.onlineDot} />}
       </View>
 
       <View style={styles.chatContent}>

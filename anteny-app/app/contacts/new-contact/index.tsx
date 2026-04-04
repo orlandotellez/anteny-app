@@ -42,7 +42,7 @@ export default function NewContactScreen() {
 
   // Función para encontrar si ya existe un chat con el usuario
   const findChatWithUser = (userId: string) => {
-    return chats.find(chat => 
+    return chats.find(chat =>
       chat.otherUser?.user_id === userId
     );
   };
@@ -66,9 +66,9 @@ export default function NewContactScreen() {
           renderItem={({ item }) => {
             const existingChat = findChatWithUser(item.user_id);
             return (
-              <NewContactItem 
-                user_id={item.user_id} 
-                displayname={item.displayname || item.user_id}
+              <NewContactItem
+                user_id={item.user_id}
+                displayname={item.displayname}
                 existingChatRoomId={existingChat?.room_id}
               />
             );

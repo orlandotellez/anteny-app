@@ -6,10 +6,11 @@ import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { createDirectChat } from "@/src/services/matrix";
 import { useChats } from "@/src/features/chats/context/ChatContext";
 import { router } from "expo-router";
+import { getUsernameFromUserId } from "@/src/shared/utils/format";
 
 interface NewContactItemProps {
   user_id: string;
-  displayname: string;
+  displayname?: string;
   existingChatRoomId?: string;
 }
 
@@ -20,6 +21,10 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   const hasExistingChat = !!existingChatRoomId;
+  
+  // Si hay displayname usarlo, si no usar getUsernameFromUserId
+  const displayName = displayname || getUsernameFromUserId(user_id);
+  const avatarInitial = displayName ? displayName[0].toUpperCase() : "?";
 
   const handlePress = async () => {
     if (!session?.access_token) return;
@@ -64,14 +69,14 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
     <View style={styles.row}>
       <View style={styles.avatar}>
         <Text style={{ color: "#fff", fontWeight: "700" }}>
-          {displayname?.[0] || "?"}
+          {avatarInitial}
         </Text>
       </View>
 
       <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text style={styles.name}>{displayname}</Text>
+        <Text style={styles.name}>{displayName}</Text>
         <Text style={styles.status}>
-          {hasExistingChat ? "Chat existente" : "Disponible"}
+          {user_id}
         </Text>
       </View>
 

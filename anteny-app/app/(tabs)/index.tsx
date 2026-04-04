@@ -194,7 +194,6 @@ export default function ChatScreen() {
               name={item.name || "Chat"}
               lastMessage={item.isInvite ? "Tap to accept" : (item.isDirect ? "DM" : "Group chat")}
               time={item.isInvite ? "Invite" : "now"}
-              isOnline={!item.isInvite}
               onPress={() => handleChatPress(item)}
               onLongPress={() => handleChatLongPress(item.room_id, item.name || "Chat", item.isInvite)}
             />
