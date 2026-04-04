@@ -56,6 +56,15 @@ export default function ChatScreen() {
     enabled: !!chatId,
   });
 
+  // empezar hacia abajo con los mensajes más recientes
+  useEffect(() => {
+    if (messages.length > 0 && !isLoadingMessages) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+      }, 100);
+    }
+  }, [messages.length, isLoadingMessages]);
+
   useEffect(() => {
     const loadChatData = async () => {
       const existingChat = getChatById(chatId);
