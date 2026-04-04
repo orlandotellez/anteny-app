@@ -215,8 +215,9 @@ export default function ChatScreen() {
       )}
 
       {/* FAB */}
-      <TouchableOpacity style={styles.fab}>
-        <Ionicons name="chatbubble" size={24} color="#002109" />
+      <TouchableOpacity style={styles.fab} onPress={() => router.push("/contacts/new-contact")}>
+        <Ionicons name="add" size={25} color="#002109" />
+        <Ionicons name="people" size={25} color="#002109" />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -279,9 +280,11 @@ const styles = StyleSheet.create({
     bottom: 20,
     right: 20,
     backgroundColor: THEME.colors.primary,
-    width: 56,
+    width: 70,
     height: 56,
     borderRadius: 16,
+    display: "flex",
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
   },
