@@ -36,5 +36,6 @@ export {
 export {
   sendRoomMessage,
   redactMessage,
-  getRoomMessages
+  getRoomMessages,
+  editMessage
 } from './messages'

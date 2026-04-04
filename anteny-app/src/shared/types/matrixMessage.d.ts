@@ -7,5 +7,7 @@ export interface Message {
   type: string;
   msgtype?: string;
   isDeleted?: boolean;
+  isEdited?: boolean;
+  editedEventId?: string;
 }
 

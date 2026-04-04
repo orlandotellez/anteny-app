@@ -40,8 +40,10 @@ export default function ChatScreen() {
     loadMore,
     sendMessage,
     deleteMessage,
+    editMessage,
     isSending,
     isDeleting,
+    isEditing,
   } = useRoomMessages({
     roomId: chatId || "",
     initialLimit: 50,
@@ -132,9 +134,12 @@ export default function ChatScreen() {
     return success;
   }, [sendMessage]);
 
-  const handleLoadMore = useCallback(async () => {
-    if (!isLoadingMessages && hasMore) {
-      await loadMore();
+  const handleScroll = useCallback((event: any) => {
+    const { contentOffset } = event.nativeEvent;
+    const isAtTop = contentOffset.y < 50;
+
+    if (!isLoadingMessages && hasMore && isAtTop) {
+      loadMore();
     }
   }, [isLoadingMessages, hasMore, loadMore]);
 
@@ -184,7 +189,7 @@ export default function ChatScreen() {
             contentContainerStyle={styles.chatContainer}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"
-            onScrollBeginDrag={handleLoadMore}
+            onScroll={handleScroll}
             scrollEventThrottle={400}
           >
             <Conversation
@@ -193,7 +198,9 @@ export default function ChatScreen() {
               formatTime={formatTime}
               isLoadingMessages={isLoadingMessages}
               onDeleteMessage={deleteMessage}
+              onEditMessage={editMessage}
               isDeleting={isDeleting}
+              isEditing={isEditing}
             />
           </ScrollView>
         </View>

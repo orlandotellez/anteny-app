@@ -11,6 +11,7 @@ interface UseSyncLoopOptions {
   onJoin?: (roomId: string) => void;
   onLeave?: (roomId: string) => void;
   onRedaction?: (roomId: string, redactedEventIds: string[]) => void;
+  onEdit?: (roomId: string, originalEventId: string, newBody: string, newEventId: string) => void;
   onError?: (error: Error) => void;
   enabled?: boolean;
 }
@@ -34,6 +35,7 @@ export const useSyncLoop = (options: UseSyncLoopOptions = {}): UseSyncLoopReturn
     onJoin,
     onLeave,
     onRedaction,
+    onEdit,
     onError,
     enabled = true,
   } = options;
@@ -90,10 +92,22 @@ export const useSyncLoop = (options: UseSyncLoopOptions = {}): UseSyncLoopReturn
         nextBatchRef.current = syncData.next_batch;
         setLastSyncTime(Date.now());
 
-        const { newMessages, newInvites, joinedRooms, leftRooms, redactions } = processSyncResponse(
+        const { newMessages, newInvites, joinedRooms, leftRooms, redactions, editedMessages } = processSyncResponse(
           syncData,
           session.user_id
         );
+
+        editedMessages.forEach((events, roomId) => {
+          events.forEach(event => {
+            const relatesTo = event.content?.["m.relates_to"] as { event_id?: string } | undefined;
+            const originalEventId = relatesTo?.event_id;
+            const newBody = event.content?.body as string;
+            if (originalEventId && newBody) {
+              console.log(`[useSyncLoop] Edit in ${roomId}: original=${originalEventId}, newBody=${newBody}, newEventId=${event.event_id}`);
+              onEdit?.(roomId, originalEventId, newBody, event.event_id);
+            }
+          });
+        });
 
         redactions.forEach((redactedEventIds, roomId) => {
           if (redactedEventIds.length > 0) {
@@ -146,7 +160,7 @@ export const useSyncLoop = (options: UseSyncLoopOptions = {}): UseSyncLoopReturn
     isRunningRef.current = false;
     setIsRunning(false);
     console.log('[useSyncLoop] Loop stopped');
-  }, [onMessages, onInvite, onJoin, onLeave, onRedaction, onError]);
+  }, [onMessages, onInvite, onJoin, onLeave, onRedaction, onEdit, onError]);
 
   const startSync = useCallback(() => {
     if (isRunningRef.current) {

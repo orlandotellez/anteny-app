@@ -62,24 +62,34 @@ export const processSyncResponse = (
   newInvites: string[];
   joinedRooms: string[];
   leftRooms: string[];
-  redactions: Map<string, string[]>; // roomId -> array of redacted event IDs
+  redactions: Map<string, string[]>;
+  editedMessages: Map<string, MatrixEvent[]>;
 } => {
   const newMessages = new Map<string, MatrixEvent[]>();
   const newInvites: string[] = [];
   const joinedRooms: string[] = [];
   const leftRooms: string[] = [];
   const redactions = new Map<string, string[]>();
+  const editedMessages = new Map<string, MatrixEvent[]>();
 
   if (syncData.rooms?.join) {
     for (const [roomId, roomData] of Object.entries(syncData.rooms.join)) {
       const timelineEvents = roomData.timeline?.events || [];
-      const messageEvents = timelineEvents.filter(
-        (e) =>
-          e.type === "m.room.message" &&
-          e.sender !== currentUserId
-      );
 
-      // Detect redaction events
+      const regularMessages: MatrixEvent[] = [];
+      const editedEvents: MatrixEvent[] = [];
+
+      timelineEvents.forEach(e => {
+        if (e.type === "m.room.message") {
+          const relatesTo = e.content?.["m.relates_to"] as { rel_type?: string; event_id?: string } | undefined;
+          if (relatesTo?.rel_type === "m.replace") {
+            editedEvents.push(e);
+          } else if (e.sender !== currentUserId) {
+            regularMessages.push(e);
+          }
+        }
+      });
+
       const redactedEventIds = timelineEvents
         .filter((e) => e.type === "m.room.redaction")
         .map((e) => e.redacts)
@@ -89,8 +99,12 @@ export const processSyncResponse = (
         redactions.set(roomId, redactedEventIds);
       }
 
-      if (messageEvents.length > 0) {
-        newMessages.set(roomId, messageEvents);
+      if (regularMessages.length > 0) {
+        newMessages.set(roomId, regularMessages);
+      }
+
+      if (editedEvents.length > 0) {
+        editedMessages.set(roomId, editedEvents);
       }
 
       joinedRooms.push(roomId);
@@ -115,5 +129,6 @@ export const processSyncResponse = (
     joinedRooms,
     leftRooms,
     redactions,
+    editedMessages,
   };
 };

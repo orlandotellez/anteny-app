@@ -39,6 +39,53 @@ export const sendRoomMessage = async (
   }
 };
 
+export const editMessage = async (
+  roomId: string,
+  eventId: string,
+  token: string,
+  newBody: string,
+  msgtype: string = "m.text"
+): Promise<string | null> => {
+  try {
+    const txnId = `m${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    const res = await fetch(
+      `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/send/m.room.message/${txnId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          "msgtype": msgtype,
+          "body": newBody,
+          "m.new_content": {
+            "msgtype": msgtype,
+            "body": newBody,
+          },
+          "m.relates_to": {
+            "rel_type": "m.replace",
+            "event_id": eventId,
+          },
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      const error = await res.json();
+      console.error("[editMessage] Error:", error);
+      return null;
+    }
+
+    const data = await res.json();
+    return data.event_id;
+  } catch (err) {
+    console.error("[editMessage] Network error:", err);
+    return null;
+  }
+};
+
 export const redactMessage = async (
   roomId: string,
   eventId: string,
