@@ -66,17 +66,18 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
   };
 
   const processEventToMessage = useCallback((event: MatrixEvent, msgRoomId: string): Message => {
-    const relatesTo = (event["m.relates_to"] || event.content?.["m.relates_to"]) as { rel_type?: string; event_id?: string; "m.in_reply_to"?: { event_id?: string }; "m.fallback_text"?: string } | undefined;
+    const relatesTo = (event["m.relates_to"] || event.content?.["m.relates_to"]) as { rel_type?: string; event_id?: string } | undefined;
     const isEdited = relatesTo?.rel_type === "m.replace";
 
-    const isReply = relatesTo?.rel_type === "m.thread" || !!relatesTo?.["m.in_reply_to"];
-    const replyToEventId = relatesTo?.event_id || relatesTo?.["m.in_reply_to"]?.event_id;
+    const isReply = relatesTo?.rel_type === "m.in_reply_to";
+    const replyToEventId = relatesTo?.event_id;
 
-    const replyToBody = event.content?.["m.relates_to"]?.["m.fallback_text"]
-      ? event.content["m.relates_to"]["m.fallback_text"].replace(/^<.*?> /, '')
-      : undefined;
-    const replyToSender = event.content?.["m.relates_to"]?.["m.fallback_text"]
-      ? event.content["m.relates_to"]["m.fallback_text"].match(/^<([^>]+)>/)?.[1]
+    const fallbackText = event.content?.["m.fallback_text"] as string | undefined;
+    const replyToBody = fallbackText
+      ? fallbackText.replace(/^<[^>]+> /, '')
+      : (isReply ? event.content?.body : undefined);
+    const replyToSender = fallbackText
+      ? fallbackText.match(/^<([^>]+)>/)?.[1]
       : undefined;
 
     return {

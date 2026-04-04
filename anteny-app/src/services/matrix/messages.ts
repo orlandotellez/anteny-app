@@ -24,13 +24,10 @@ export const sendRoomMessage = async (
 
     if (replyTo) {
       content["m.relates_to"] = {
-        rel_type: "m.thread",
+        rel_type: "m.in_reply_to",
         event_id: replyTo.eventId,
-        "m.in_reply_to": {
-          event_id: replyTo.eventId,
-        },
       };
-      content["m.relates_to"]["m.fallback_text"] = `<${replyTo.sender}> ${replyTo.body}`;
+      content["m.fallback_text"] = `<${replyTo.sender}> ${replyTo.body}`;
     }
 
     const res = await fetch(
