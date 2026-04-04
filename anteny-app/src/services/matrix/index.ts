@@ -20,3 +20,21 @@ export {
   joinRoom,
   rejectInvite,
 } from './rooms';
+
+// Sync (long polling)
+export {
+  matrixSync,
+  processSyncResponse,
+} from './sync';
+
+// Timeline
+export {
+  processTimelineEvent
+} from './timeline'
+
+// Messages
+export {
+  sendRoomMessage,
+  redactMessage,
+  getRoomMessages
+} from './messages'

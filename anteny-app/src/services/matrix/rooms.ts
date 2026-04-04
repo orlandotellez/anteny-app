@@ -1,4 +1,4 @@
-import { InvitedRoom } from "@/src/shared/types/room";
+import { InvitedRoom } from "@/src/shared/types/matrixRoom";
 import { ENV } from "../../shared/constants/env";
 
 export const createDirectChat = async (
