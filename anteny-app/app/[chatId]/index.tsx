@@ -32,6 +32,7 @@ export default function ChatScreen() {
     otherUser?: { user_id: string; displayname: string };
     isDirect: boolean;
   } | null>(null);
+  const [replyingToMessage, setReplyingToMessage] = useState<any | null>(null);
 
   const {
     messages,
@@ -132,16 +133,23 @@ export default function ChatScreen() {
     }
   }, [chatId, session, getChatById, loadChats]);
 
-  const handleSendMessage = useCallback(async (body: string) => {
+  const handleSendMessage = useCallback(async (body: string, replyTo?: { eventId: string; body: string; sender: string }) => {
+    console.log("[ChatScreen] handleSendMessage called with replyTo:", replyTo);
     if (!body.trim()) return false;
-    const success = await sendMessage(body);
+    const success = await sendMessage(body, replyTo);
     if (success) {
+      // Clear reply after sending
+      setReplyingToMessage(null);
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
     return success;
   }, [sendMessage]);
+
+  const handleCancelReply = useCallback(() => {
+    setReplyingToMessage(null);
+  }, []);
 
   const handleScroll = useCallback((event: any) => {
     const { contentOffset } = event.nativeEvent;
@@ -208,6 +216,7 @@ export default function ChatScreen() {
               isLoadingMessages={isLoadingMessages}
               onDeleteMessage={deleteMessage}
               onEditMessage={editMessage}
+              onReplyMessage={setReplyingToMessage}
               isDeleting={isDeleting}
               isEditing={isEditing}
             />
@@ -218,6 +227,8 @@ export default function ChatScreen() {
         <Input
           onSendMessage={handleSendMessage}
           isSending={isSending}
+          replyingTo={replyingToMessage}
+          onCancelReply={handleCancelReply}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>

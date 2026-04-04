@@ -4,6 +4,7 @@ import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { Message } from "@/src/shared/types/matrixMessage";
 import { formatDate } from "@/src/shared/utils/time";
 import { useState } from "react";
+import { getUsernameFromUserId } from "@/src/shared/utils/format";
 
 interface ConversationProps {
   messages: Message[];
@@ -12,6 +13,7 @@ interface ConversationProps {
   isLoadingMessages?: boolean;
   onDeleteMessage?: (eventId: string) => void;
   onEditMessage?: (eventId: string, newBody: string) => void;
+  onReplyMessage?: (message: Message) => void;
   isDeleting?: boolean;
   isEditing?: boolean;
 }
@@ -23,6 +25,7 @@ export const Conversation = ({
   isLoadingMessages = false,
   onDeleteMessage,
   onEditMessage,
+  onReplyMessage,
   isDeleting = false,
   isEditing = false,
 }: ConversationProps) => {
@@ -60,6 +63,9 @@ export const Conversation = ({
   };
 
   const handleReply = () => {
+    if (selectedMessage) {
+      onReplyMessage?.(selectedMessage);
+    }
     setShowMenu(false);
     setSelectedMessage(null);
   };
@@ -148,6 +154,19 @@ export const Conversation = ({
               >
                 <View style={isOwn ? styles.sent : styles.received}>
                   <View style={isOwn ? styles.sentBubble : styles.receivedBubble}>
+                    {/* Reply Preview */}
+                    {message.replyTo && (
+                      <View style={styles.replyPreviewContainer}>
+                        <View style={styles.replyLine} />
+                        <View style={styles.replyContent}>
+                          <Text style={styles.replyLabel}>{getUsernameFromUserId(message.replyToSender as string)}</Text>
+                          <Text style={styles.replyText} numberOfLines={1}>
+                            {message.replyToBody}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+
                     <Text style={[styles.text, isDeleted && styles.deletedText]}>
                       {isDeleted ? "Message deleted" : message.body}
                     </Text>
@@ -284,13 +303,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#2a2a2a",
     padding: 10,
     borderRadius: 12,
-    maxWidth: "85%",
+    width: "100%",
+    maxWidth: 150
   },
   sentBubble: {
     backgroundColor: THEME.colors.secondary,
     padding: 10,
     borderRadius: 12,
-    maxWidth: "85%",
+    width: "100%",
+    maxWidth: 150
+
   },
   text: {
     color: "#e2e2e2",
@@ -410,5 +432,29 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  // Reply Preview in Message
+  replyPreviewContainer: {
+    flexDirection: "row",
+    marginBottom: 6,
+    gap: 6,
+  },
+  replyLine: {
+    width: 3,
+    backgroundColor: THEME.colors.primary,
+    borderRadius: 2,
+  },
+  replyContent: {
+    flex: 1,
+  },
+  replyLabel: {
+    fontSize: 11,
+    color: THEME.colors.primary,
+    fontWeight: "600",
+  },
+  replyText: {
+    fontSize: 13,
+    color: "#888888",
+    marginTop: 1,
   },
 });

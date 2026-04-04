@@ -1,24 +1,34 @@
 import { useState, useCallback } from "react";
-import { StyleSheet, TextInput, TouchableOpacity, View, ActivityIndicator } from "react-native"
+import { StyleSheet, TextInput, TouchableOpacity, View, ActivityIndicator, Text } from "react-native"
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { THEME } from "@/src/shared/lib/theme";
+import { Message } from "@/src/shared/types/matrixMessage";
+import { getUsernameFromUserId } from "@/src/shared/utils/format";
 
 interface InputProps {
-  onSendMessage: (body: string) => Promise<boolean>;
+  onSendMessage: (body: string, replyTo?: { eventId: string; body: string; sender: string }) => Promise<boolean>;
   isSending?: boolean;
+  replyingTo?: Message | null;
+  onCancelReply?: () => void;
 }
 
-export const Input = ({ onSendMessage, isSending = false }: InputProps) => {
+export const Input = ({ onSendMessage, isSending = false, replyingTo, onCancelReply }: InputProps) => {
   const [message, setMessage] = useState("");
 
   const handleSend = useCallback(async () => {
     if (!message.trim() || isSending) return;
 
-    const success = await onSendMessage(message);
+    const replyInfo = replyingTo ? {
+      eventId: replyingTo.id,
+      body: replyingTo.body,
+      sender: replyingTo.sender,
+    } : undefined;
+
+    const success = await onSendMessage(message, replyInfo);
     if (success) {
       setMessage("");
     }
-  }, [message, onSendMessage, isSending]);
+  }, [message, onSendMessage, isSending, replyingTo]);
 
   const handleTextChange = (text: string) => {
     setMessage(text);
@@ -32,6 +42,24 @@ export const Input = ({ onSendMessage, isSending = false }: InputProps) => {
 
   return (
     <>
+      {/* Reply Preview */}
+      {replyingTo && (
+        <View style={styles.replyPreview}>
+          <View style={styles.replyLine} />
+          <View style={styles.replyContent}>
+            <Text style={styles.replyLabel}>
+              Respondiendo a {getUsernameFromUserId(replyingTo.sender)}
+            </Text>
+            <Text style={styles.replyText} numberOfLines={1}>
+              {replyingTo.body}
+            </Text>
+          </View>
+          <TouchableOpacity onPress={onCancelReply} style={styles.cancelReply}>
+            <Ionicons name="close" size={20} color={THEME.colors.text_opacity} />
+          </TouchableOpacity>
+        </View>
+      )}
+
       <View style={styles.footer}>
         <View style={styles.inputContainer}>
           <Ionicons name="happy-outline" size={22} color={THEME.colors.text_opacity} />
@@ -72,7 +100,6 @@ export const Input = ({ onSendMessage, isSending = false }: InputProps) => {
 }
 
 const styles = StyleSheet.create({
-
   footer: {
     padding: 8,
     flexDirection: "row",
@@ -110,4 +137,37 @@ const styles = StyleSheet.create({
     backgroundColor: "#555",
   },
 
+  // Reply Preview Styles
+  replyPreview: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1b1b1b",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#333",
+    gap: 8,
+  },
+  replyLine: {
+    width: 3,
+    height: "100%",
+    backgroundColor: THEME.colors.primary,
+    borderRadius: 2,
+  },
+  replyContent: {
+    flex: 1,
+  },
+  replyLabel: {
+    fontSize: 12,
+    color: THEME.colors.primary,
+    fontWeight: "600",
+  },
+  replyText: {
+    fontSize: 14,
+    color: "#888888",
+    marginTop: 2,
+  },
+  cancelReply: {
+    padding: 4,
+  },
 })

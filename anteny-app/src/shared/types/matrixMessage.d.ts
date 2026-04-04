@@ -9,5 +9,8 @@ export interface Message {
   isDeleted?: boolean;
   isEdited?: boolean;
   editedEventId?: string;
+  replyTo?: string; // event_id del mensaje al que se responde
+  replyToBody?: string; // preview del mensaje al que se responde
+  replyToSender?: string; // nombre del usuario al que se responde
 }
 

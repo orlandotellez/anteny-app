@@ -66,8 +66,18 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
   };
 
   const processEventToMessage = useCallback((event: MatrixEvent, msgRoomId: string): Message => {
-    const relatesTo = (event["m.relates_to"] || event.content?.["m.relates_to"]) as { rel_type?: string; event_id?: string } | undefined;
+    const relatesTo = (event["m.relates_to"] || event.content?.["m.relates_to"]) as { rel_type?: string; event_id?: string; "m.in_reply_to"?: { event_id?: string }; "m.fallback_text"?: string } | undefined;
     const isEdited = relatesTo?.rel_type === "m.replace";
+
+    const isReply = relatesTo?.rel_type === "m.thread" || !!relatesTo?.["m.in_reply_to"];
+    const replyToEventId = relatesTo?.event_id || relatesTo?.["m.in_reply_to"]?.event_id;
+
+    const replyToBody = event.content?.["m.relates_to"]?.["m.fallback_text"]
+      ? event.content["m.relates_to"]["m.fallback_text"].replace(/^<.*?> /, '')
+      : undefined;
+    const replyToSender = event.content?.["m.relates_to"]?.["m.fallback_text"]
+      ? event.content["m.relates_to"]["m.fallback_text"].match(/^<([^>]+)>/)?.[1]
+      : undefined;
 
     return {
       id: event.event_id,
@@ -79,6 +89,9 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
       msgtype: event.content?.msgtype as string,
       isEdited: isEdited,
       editedEventId: isEdited ? relatesTo?.event_id : undefined,
+      replyTo: isReply ? replyToEventId : undefined,
+      replyToBody: isReply ? replyToBody : undefined,
+      replyToSender: isReply ? replyToSender : undefined,
     };
   }, []);
 
@@ -156,7 +169,7 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
     }
   }, [roomId, initialLimit, enabled, isLoading, hasMore, messages, processEventToMessage]);
 
-  const sendMessage = useCallback(async (body: string): Promise<boolean> => {
+  const sendMessage = useCallback(async (body: string, replyTo?: { eventId: string; body: string; sender: string } | null): Promise<boolean> => {
     if (!roomId || !body.trim()) return false;
 
     const session = await authStorage.getSession();
@@ -165,7 +178,7 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
     setIsSending(true);
 
     try {
-      const eventId = await sendRoomMessage(roomId, session.access_token, body.trim());
+      const eventId = await sendRoomMessage(roomId, session.access_token, body.trim(), "m.text", replyTo || undefined);
 
       if (eventId) {
         const tempMessage: Message = {
@@ -176,6 +189,9 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
           timestamp: Date.now(),
           type: 'm.room.message',
           msgtype: 'm.text',
+          replyTo: replyTo?.eventId,
+          replyToBody: replyTo?.body,
+          replyToSender: replyTo?.sender,
         };
 
         setMessages(prev => [...prev, tempMessage]);

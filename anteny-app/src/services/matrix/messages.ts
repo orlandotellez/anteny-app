@@ -1,14 +1,37 @@
 import { ENV } from "@/src/shared/constants/env";
 import { MatrixEvent } from "@/src/shared/types/matrixEvent";
 
+interface ReplyTo {
+  eventId: string;
+  body: string;
+  sender: string;
+}
+
 export const sendRoomMessage = async (
   roomId: string,
   token: string,
   body: string,
-  msgtype: string = "m.text"
+  msgtype: string = "m.text",
+  replyTo?: ReplyTo | null
 ): Promise<string | null> => {
   try {
     const txnId = `m${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    const content: Record<string, any> = {
+      msgtype,
+      body,
+    };
+
+    if (replyTo) {
+      content["m.relates_to"] = {
+        rel_type: "m.thread",
+        event_id: replyTo.eventId,
+        "m.in_reply_to": {
+          event_id: replyTo.eventId,
+        },
+      };
+      content["m.relates_to"]["m.fallback_text"] = `<${replyTo.sender}> ${replyTo.body}`;
+    }
 
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/send/m.room.message/${txnId}`,
@@ -18,10 +41,7 @@ export const sendRoomMessage = async (
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          msgtype,
-          body,
-        }),
+        body: JSON.stringify(content),
       }
     );
 
