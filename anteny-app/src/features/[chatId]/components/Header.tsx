@@ -1,5 +1,5 @@
 import { Text, TouchableOpacity, View, StyleSheet } from "react-native"
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { THEME } from "@/src/shared/lib/theme";
 import { getColorFromName } from "@/src/shared/utils/format";
@@ -28,14 +28,12 @@ export const Header = ({ name, isOnline, status }: HeaderProps) => {
           </View>
           <View>
             <Text style={styles.name}>{name}</Text>
-            <Text style={styles.status}>{isOnline ? "online" : status}</Text>
           </View>
         </View>
       </View>
 
       <View style={styles.headerRight}>
         <Ionicons name="call-outline" size={22} color={THEME.colors.text_opacity} />
-        <MaterialIcons name="more-vert" size={22} color={THEME.colors.text_opacity} />
       </View>
     </View>
   )

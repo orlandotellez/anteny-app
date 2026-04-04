@@ -1,62 +1,118 @@
 import { THEME } from "@/src/shared/lib/theme"
-import { Image, StyleSheet, Text, View } from "react-native"
-import { MaterialIcons } from "@expo/vector-icons";
+import { Image, StyleSheet, Text, View, ActivityIndicator } from "react-native"
+import { Message } from "@/src/shared/types/matrixMessage";
+import { formatDate } from "@/src/shared/utils/time";
 
-export const Conversation = () => {
+interface ConversationProps {
+  messages: Message[];
+  currentUserId: string;
+  formatTime: (timestamp: number) => string;
+  isLoadingMessages?: boolean;
+}
+
+export const Conversation = ({
+  messages,
+  currentUserId,
+  formatTime,
+  isLoadingMessages = false,
+}: ConversationProps) => {
+  const isOwnMessage = (sender: string) => sender === currentUserId;
+
+  const groupMessagesByDate = () => {
+    const groups: { date: string; messages: Message[] }[] = [];
+
+    messages.forEach((msg) => {
+      const dateKey = formatDate(msg.timestamp);
+      const lastGroup = groups[groups.length - 1];
+
+      if (lastGroup && lastGroup.date === dateKey) {
+        lastGroup.messages.push(msg);
+      } else {
+        groups.push({ date: dateKey, messages: [msg] });
+      }
+    });
+
+    return groups;
+  };
+
+  const messageGroups = groupMessagesByDate();
+
+  if (messages.length === 0 && !isLoadingMessages) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No messages yet</Text>
+        <Text style={styles.emptySubtext}>Send a message to start the conversation</Text>
+      </View>
+    );
+  }
+
   return (
     <>
-      <Text style={styles.date}>Today</Text>
-
-      {/* Received */}
-      <View style={styles.received}>
-        <View style={styles.receivedBubble}>
-          <Text style={styles.text}>
-            Hey! Did you see the new design system update for the monolith
-            project? 🌑
-          </Text>
-          <Text style={styles.time}>10:42 AM</Text>
+      {isLoadingMessages && (
+        <View style={styles.loadingMore}>
+          <ActivityIndicator size="small" color={THEME.colors.primary} />
         </View>
-      </View>
+      )}
 
-      {/* Sent */}
-      <View style={styles.sent}>
-        <View style={styles.sentBubble}>
-          <Text style={styles.text}>
-            Yes! The pitch-black foundation looks incredible. 🚀
-          </Text>
-          <View style={styles.sentMeta}>
-            <Text style={styles.time}>10:44 AM</Text>
-            <MaterialIcons name="done-all" size={16} color={THEME.colors.primary} />
-          </View>
+      {messageGroups.map((group, groupIndex) => (
+        <View key={`${group.date}-${groupIndex}`}>
+          <Text style={styles.date}>{group.date}</Text>
+
+          {group.messages.map((message) => {
+            const isOwn = isOwnMessage(message.sender);
+
+            if (message.msgtype === "m.image") {
+              return (
+                <View key={message.id} style={isOwn ? styles.sent : styles.received}>
+                  <View style={isOwn ? styles.sentBubble : styles.receivedBubble}>
+                    <Image
+                      source={{ uri: message.body }}
+                      style={styles.image}
+                    />
+                    <Text style={styles.time}>{formatTime(message.timestamp)}</Text>
+                  </View>
+                </View>
+              );
+            }
+
+            return (
+              <View key={message.id} style={isOwn ? styles.sent : styles.received}>
+                <View style={isOwn ? styles.sentBubble : styles.receivedBubble}>
+                  <Text style={styles.text}>{message.body}</Text>
+                  <View style={isOwn ? styles.sentMeta : styles.receivedMeta}>
+                    <Text style={styles.time}>{formatTime(message.timestamp)}</Text>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
         </View>
-      </View>
-
-      {/* Image message */}
-      <View style={styles.received}>
-        <View style={styles.receivedBubble}>
-          <Image
-            source={{
-              uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuAZQHdqDgSI2EUZmDi7TMVsscd_rJhSdM35M_fqiToXA8a7TeFhZvpodIfm8r0b_R_NgwVfrroUWygT61VitMcS3jB4sjbbr-z4aHbQM7mTrMWzLDIr_ast7i0fnp1zswyVb0KyORZ3HFdPovANf0ubsGSOoIDOIOlRdtDrsk4n0QcajwqZh0wk2yffE60wf4fR7gS4BOhrBprLEEoeROLN3TncXpiHmu8bp48R60i_f7Nl_95UtWSp9ouysLo_lV17-Ts_IrXimPg",
-            }}
-            style={styles.image}
-          />
-          <Text style={styles.text}>
-            This is the reference I was talking about.
-          </Text>
-          <Text style={styles.time}>10:45 AM</Text>
-        </View>
-      </View>
-
-      {/* Typing */}
-      <View style={styles.typing}>
-        <Text style={styles.typingText}>Alex is typing...</Text>
-      </View>
-
+      ))}
     </>
   )
 }
 
 const styles = StyleSheet.create({
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyText: {
+    color: THEME.colors.text_title,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  emptySubtext: {
+    color: THEME.colors.text_opacity,
+    marginTop: 8,
+    fontSize: 14,
+  },
+  loadingMore: {
+    padding: 10,
+    alignItems: "center",
+  },
   date: {
     alignSelf: "center",
     color: THEME.colors.text_opacity,
@@ -97,7 +153,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: THEME.colors.text_opacity,
     marginTop: 4,
-    alignSelf: "flex-end",
   },
   sentMeta: {
     flexDirection: "row",
@@ -106,23 +161,15 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     marginTop: 4,
   },
-
+  receivedMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+  },
   image: {
     width: "100%",
     height: 150,
     borderRadius: 8,
     marginBottom: 6,
   },
-
-  typing: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginTop: 10,
-  },
-  typingText: {
-    color: THEME.colors.text_opacity,
-    fontSize: 12,
-  },
-
 })

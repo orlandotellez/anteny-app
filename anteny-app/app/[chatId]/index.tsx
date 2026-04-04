@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -17,12 +17,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useChats } from "@/src/features/chats/context/ChatContext";
 import { getRoomMembers } from "@/src/services/matrix";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
-import { RoomMember } from "@/src/shared/types/room";
+import { RoomMember } from "@/src/shared/types/matrixRoom";
+import { useRoomMessages } from "@/src/hooks/useRoomMessages";
 
 export default function ChatScreen() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();
   const { getChatById, loadChats } = useChats();
   const { session } = useAuth();
+  const scrollViewRef = useRef<ScrollView>(null);
+
   const [isLoadingChat, setIsLoadingChat] = useState(true);
   const [chatData, setChatData] = useState<{
     name: string;
@@ -30,9 +33,27 @@ export default function ChatScreen() {
     isDirect: boolean;
   } | null>(null);
 
+  const {
+    messages,
+    isLoading: isLoadingMessages,
+    hasMore,
+    loadMore,
+    sendMessage,
+    isSending,
+  } = useRoomMessages({
+    roomId: chatId || "",
+    initialLimit: 50,
+    onNewMessage: (msg) => {
+      console.log("[ChatScreen] Nuevo mensaje:", msg.body);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    },
+    enabled: !!chatId,
+  });
+
   useEffect(() => {
     const loadChatData = async () => {
-      // Primero intentar obtener del context
       const existingChat = getChatById(chatId);
 
       if (existingChat) {
@@ -45,7 +66,6 @@ export default function ChatScreen() {
         return;
       }
 
-      // Si no está en el context, cargar desde Matrix
       if (!session?.access_token) {
         setIsLoadingChat(false);
         return;
@@ -53,11 +73,7 @@ export default function ChatScreen() {
 
       try {
         setIsLoadingChat(true);
-
-        // Recargar los chats
         await loadChats();
-
-        // Intentar nuevamente después de recargar
         const reloadedChat = getChatById(chatId);
 
         if (reloadedChat) {
@@ -67,7 +83,6 @@ export default function ChatScreen() {
             isDirect: reloadedChat.isDirect,
           });
         } else {
-          // Si aún no está, cargar los miembros directamente
           const members = await getRoomMembers(chatId, session.access_token);
           const currentUserId = session.user_id;
 
@@ -102,7 +117,29 @@ export default function ChatScreen() {
     if (chatId) {
       loadChatData();
     }
-  }, [chatId, session]);
+  }, [chatId, session, getChatById, loadChats]);
+
+  const handleSendMessage = useCallback(async (body: string) => {
+    if (!body.trim()) return false;
+    const success = await sendMessage(body);
+    if (success) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+    return success;
+  }, [sendMessage]);
+
+  const handleLoadMore = useCallback(async () => {
+    if (!isLoadingMessages && hasMore) {
+      await loadMore();
+    }
+  }, [isLoadingMessages, hasMore, loadMore]);
+
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   if (isLoadingChat) {
     return (
@@ -132,26 +169,36 @@ export default function ChatScreen() {
       >
         {/* HEADER */}
         <Header
-          //id={chatData.otherUser?.user_id || chatId}
           avatar={chatData.otherUser?.user_id || ""}
           name={chatData.name}
           isOnline={true}
           status={chatData.isDirect ? "DM" : "Group"}
         />
 
-
         {/* CHAT */}
         <View style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={styles.chatContainer}
+          <ScrollView
+            ref={scrollViewRef}
+            contentContainerStyle={styles.chatContainer}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"
+            onScrollBeginDrag={handleLoadMore}
+            scrollEventThrottle={400}
           >
-            <Conversation />
+            <Conversation
+              messages={messages}
+              currentUserId={session?.user_id || ""}
+              formatTime={formatTime}
+              isLoadingMessages={isLoadingMessages}
+            />
           </ScrollView>
         </View>
 
         {/* INPUT */}
-        <Input />
+        <Input
+          onSendMessage={handleSendMessage}
+          isSending={isSending}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

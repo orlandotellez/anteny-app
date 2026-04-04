@@ -15,7 +15,7 @@ import { Header } from "@/src/features/chats/components/Header";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useChats } from "@/src/features/chats/context/ChatContext";
 import { router } from "expo-router";
-import { ChatRoom } from "@/src/shared/types/room";
+import { ChatRoom } from "@/src/shared/types/matrixRoom";
 
 type FilterType = "all" | "direct" | "groups" | "invites";
 
