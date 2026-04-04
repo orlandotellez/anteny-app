@@ -1,8 +1,9 @@
 import { THEME } from "@/src/shared/lib/theme"
-import { Image, StyleSheet, Text, View, ActivityIndicator, Pressable, Alert, TextInput, Modal, TextInput as TextInputRN } from "react-native"
+import { Image, StyleSheet, Text, View, ActivityIndicator, Pressable, TextInput, Modal } from "react-native"
+import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { Message } from "@/src/shared/types/matrixMessage";
 import { formatDate } from "@/src/shared/utils/time";
-import { useState, useRef } from "react";
+import { useState } from "react";
 
 interface ConversationProps {
   messages: Message[];
@@ -29,61 +30,43 @@ export const Conversation = ({
 
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [editText, setEditText] = useState("");
+  const [showMenu, setShowMenu] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
 
   const handleLongPress = (message: Message) => {
-    console.log("[Conversation] Long press:", message.id, "isOwn:", isOwnMessage(message.sender), "isDeleted:", message.isDeleted);
+    // Only show menu for own messages and non-deleted
+    if (message.isDeleted) return;
 
-    // solo editar/borrar mensajes que son nuestros
-    if (!isOwnMessage(message.sender)) {
-      console.log("[Conversation] Not own message, skipping");
-      return;
-    }
-    if (message.isDeleted) {
-      console.log("[Conversation] Message is deleted, skipping");
-      return;
-    }
+    setSelectedMessage(message);
+    setShowMenu(true);
+  };
 
-    Alert.alert(
-      "Message Options",
-      "Choose an action",
-      [
-        {
-          text: "Edit",
-          onPress: () => {
-            setEditingMessage(message);
-            setEditText(message.body);
-          }
-        },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            Alert.alert(
-              "Delete Message",
-              "Are you sure you want to delete this message for everyone?",
-              [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: "Delete",
-                  style: "destructive",
-                  onPress: () => onDeleteMessage?.(message.id)
-                },
-              ]
-            );
-          }
-        },
-        { text: "Cancel", style: "cancel" },
-      ]
-    );
+  const handleEdit = () => {
+    if (selectedMessage) {
+      setEditingMessage(selectedMessage);
+      setEditText(selectedMessage.body);
+    }
+    setShowMenu(false);
+    setSelectedMessage(null);
+  };
+
+  const handleDelete = () => {
+    if (selectedMessage) {
+      // Show confirmation and delete
+      onDeleteMessage?.(selectedMessage.id);
+    }
+    setShowMenu(false);
+    setSelectedMessage(null);
+  };
+
+  const handleReply = () => {
+    setShowMenu(false);
+    setSelectedMessage(null);
   };
 
   const handleSaveEdit = async () => {
-    console.log("[Conversation] handleSaveEdit called, editingMessage:", editingMessage?.id, "editText:", editText);
     if (editingMessage && editText.trim()) {
-      console.log("[Conversation] Calling onEditMessage with:", editingMessage.id);
       const result = await onEditMessage?.(editingMessage.id, editText.trim());
-      console.log("[Conversation] onEditMessage result:", result);
-      // Only close modal after edit completes
       if (result) {
         setEditingMessage(null);
         setEditText("");
@@ -109,6 +92,7 @@ export const Conversation = ({
   };
 
   const messageGroups = groupMessagesByDate();
+  const isSelectedMine = selectedMessage ? isOwnMessage(selectedMessage.sender) : false;
 
   if (messages.length === 0 && !isLoadingMessages) {
     return (
@@ -160,7 +144,7 @@ export const Conversation = ({
                 key={message.id}
                 onLongPress={() => handleLongPress(message)}
                 delayLongPress={500}
-                disabled={!isOwn || isDeleted}
+                disabled={isDeleted}
               >
                 <View style={isOwn ? styles.sent : styles.received}>
                   <View style={isOwn ? styles.sentBubble : styles.receivedBubble}>
@@ -180,6 +164,36 @@ export const Conversation = ({
           })}
         </View>
       ))}
+
+      {/* Options Menu Modal */}
+      <Modal transparent visible={showMenu} animationType="fade" onRequestClose={() => setShowMenu(false)}>
+        <Pressable style={styles.modalBackdrop} onPressOut={() => setShowMenu(false)}>
+          <View style={styles.menuBox}>
+            <Pressable style={styles.menuButton} onPress={handleReply}>
+              <MaterialCommunityIcons name="reply-outline" size={24} color={THEME.colors.primary} />
+              <Text style={styles.menuText}>Responder</Text>
+            </Pressable>
+
+            {isSelectedMine && (
+              <>
+                <Pressable style={styles.menuButton} onPress={handleEdit}>
+                  <MaterialCommunityIcons name="pencil-outline" size={24} color={THEME.colors.primary} />
+                  <Text style={styles.menuText}>Editar</Text>
+                </Pressable>
+
+                <Pressable style={styles.menuButton} onPress={handleDelete}>
+                  <Feather name="trash-2" size={24} color={THEME.colors.danger} />
+                  <Text style={[styles.menuText, { color: THEME.colors.danger }]}>Eliminar</Text>
+                </Pressable>
+              </>
+            )}
+
+            <Pressable style={styles.menuCancel} onPress={() => setShowMenu(false)}>
+              <Text style={styles.menuCancelText}>Cancelar</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
 
       {/* Edit Modal */}
       <Modal
@@ -258,7 +272,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginVertical: 10,
   },
-
   received: {
     alignItems: "flex-start",
     marginBottom: 10,
@@ -267,7 +280,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     marginBottom: 10,
   },
-
   receivedBubble: {
     backgroundColor: "#2a2a2a",
     padding: 10,
@@ -280,7 +292,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     maxWidth: "85%",
   },
-
   text: {
     color: "#e2e2e2",
   },
@@ -310,6 +321,39 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 8,
     marginBottom: 6,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  menuBox: {
+    backgroundColor: THEME.colors.secondary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    minWidth: 200,
+  },
+  menuButton: {
+    paddingVertical: 12,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  menuText: {
+    fontSize: 16,
+    color: THEME.colors.primary,
+  },
+  menuCancel: {
+    marginTop: 8,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  menuCancelText: {
+    fontSize: 15,
+    color: "#888888",
   },
   modalOverlay: {
     flex: 1,
