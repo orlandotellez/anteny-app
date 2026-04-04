@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { THEME } from "@/src/shared/lib/theme";
+import { formatDate } from "@/src/shared/utils/time";
 import { useLocalSearchParams } from "expo-router";
 import { Header } from "@/src/features/[chatId]/components/Header";
 import { Input } from "@/src/features/[chatId]/components/Input";
@@ -33,6 +34,7 @@ export default function ChatScreen() {
     isDirect: boolean;
   } | null>(null);
   const [replyingToMessage, setReplyingToMessage] = useState<any | null>(null);
+  const [visibleDate, setVisibleDate] = useState<string>("Today");
 
   const {
     messages,
@@ -152,13 +154,27 @@ export default function ChatScreen() {
   }, []);
 
   const handleScroll = useCallback((event: any) => {
-    const { contentOffset } = event.nativeEvent;
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
     const isAtTop = contentOffset.y < 50;
 
     if (!isLoadingMessages && hasMore && isAtTop) {
       loadMore();
     }
-  }, [isLoadingMessages, hasMore, loadMore]);
+
+    const scrollY = contentOffset.y;
+    const approximateVisibleIndex = Math.floor(scrollY / 60); // approximate message height
+
+    if (messages.length > 0 && approximateVisibleIndex >= 0) {
+      const visibleIndex = Math.min(approximateVisibleIndex, messages.length - 1);
+      const visibleMessage = messages[visibleIndex];
+      if (visibleMessage) {
+        const newDate = formatDate(visibleMessage.timestamp);
+        if (newDate !== visibleDate) {
+          setVisibleDate(newDate);
+        }
+      }
+    }
+  }, [isLoadingMessages, hasMore, loadMore, messages, visibleDate]);
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -201,6 +217,13 @@ export default function ChatScreen() {
 
         {/* CHAT */}
         <View style={{ flex: 1 }}>
+          {/* Sticky Date Header */}
+          <View style={styles.stickyDateContainer}>
+            <View style={styles.stickyDateBadge}>
+              <Text style={styles.stickyDateText}>{visibleDate}</Text>
+            </View>
+          </View>
+
           <ScrollView
             ref={scrollViewRef}
             contentContainerStyle={styles.chatContainer}
@@ -256,5 +279,26 @@ const styles = StyleSheet.create({
   chatContainer: {
     padding: 12,
     paddingBottom: 20,
+    paddingTop: 40, // Space for sticky date
+  },
+  stickyDateContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  stickyDateBadge: {
+    backgroundColor: "#1b1b1b",
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  stickyDateText: {
+    color: THEME.colors.text_opacity,
+    fontSize: 12,
+    fontWeight: "600",
   },
 });

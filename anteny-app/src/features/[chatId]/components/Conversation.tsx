@@ -81,16 +81,16 @@ export const Conversation = ({
   };
 
   const groupMessagesByDate = () => {
-    const groups: { date: string; messages: Message[] }[] = [];
+    const groups: { date: string; dateKey: string; messages: Message[] }[] = [];
 
     messages.forEach((msg) => {
       const dateKey = formatDate(msg.timestamp);
       const lastGroup = groups[groups.length - 1];
 
-      if (lastGroup && lastGroup.date === dateKey) {
+      if (lastGroup && lastGroup.dateKey === dateKey) {
         lastGroup.messages.push(msg);
       } else {
-        groups.push({ date: dateKey, messages: [msg] });
+        groups.push({ date: dateKey, dateKey, messages: [msg] });
       }
     });
 
@@ -118,8 +118,12 @@ export const Conversation = ({
       )}
 
       {messageGroups.map((group, groupIndex) => (
-        <View key={`${group.date}-${groupIndex}`}>
-          <Text style={styles.date}>{group.date}</Text>
+        <View key={`${group.dateKey}-${groupIndex}`}>
+          <View style={styles.dateContainer}>
+            <View style={styles.dateBadge}>
+              <Text style={styles.date}>{group.date}</Text>
+            </View>
+          </View>
 
           {group.messages.map((message) => {
             const isOwn = isOwnMessage(message.sender);
@@ -281,15 +285,21 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: "center",
   },
-  date: {
-    alignSelf: "center",
-    color: THEME.colors.text_opacity,
+  dateContainer: {
+    alignItems: "center",
+    marginVertical: 12,
+    borderRadius: 12,
+  },
+  dateBadge: {
     backgroundColor: "#1b1b1b",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    fontSize: 10,
-    marginVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  date: {
+    color: THEME.colors.text_opacity,
+    fontSize: 12,
+    fontWeight: "600",
   },
   received: {
     alignItems: "flex-start",
