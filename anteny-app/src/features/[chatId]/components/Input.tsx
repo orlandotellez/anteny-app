@@ -141,11 +141,10 @@ const styles = StyleSheet.create({
   replyPreview: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1b1b1b",
+    backgroundColor: THEME.colors.secondary,
     paddingVertical: 8,
+    paddingTop: 12,
     paddingHorizontal: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#333",
     gap: 8,
   },
   replyLine: {
