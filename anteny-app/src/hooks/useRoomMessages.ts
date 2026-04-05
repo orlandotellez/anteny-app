@@ -18,7 +18,7 @@ interface UseRoomMessagesReturn {
   isLoading: boolean;
   hasMore: boolean;
   loadMore: () => Promise<void>;
-  sendMessage: (body: string) => Promise<boolean>;
+  sendMessage: (body: string, replyTo?: { eventId: string; body: string; sender: string } | null) => Promise<boolean>;
   deleteMessage: (eventId: string) => Promise<boolean>;
   editMessage: (eventId: string, newBody: string) => Promise<boolean>;
   isSending: boolean;
@@ -73,9 +73,9 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
     const replyToEventId = relatesTo?.event_id;
 
     const fallbackText = event.content?.["m.fallback_text"] as string | undefined;
-    const replyToBody = fallbackText
+    const replyToBody: string | undefined = fallbackText
       ? fallbackText.replace(/^<[^>]+> /, '')
-      : (isReply ? event.content?.body : undefined);
+      : (isReply ? (event.content?.body as string | undefined) : undefined);
     const replyToSender = fallbackText
       ? fallbackText.match(/^<([^>]+)>/)?.[1]
       : undefined;
