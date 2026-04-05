@@ -6,10 +6,9 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
 } from "react-native";
 import { THEME } from "@/src/shared/lib/theme";
-import { formatDate } from "@/src/shared/utils/time";
+import { formatDate, formatTime } from "@/src/shared/utils/time";
 import { useLocalSearchParams, router } from "expo-router";
 import { Header } from "@/src/features/[chatId]/components/Header";
 import { Input } from "@/src/features/[chatId]/components/Input";
@@ -20,6 +19,8 @@ import { getRoomMembers } from "@/src/services/matrix";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { RoomMember } from "@/src/shared/types/matrixRoom";
 import { useRoomMessages } from "@/src/hooks/useRoomMessages";
+import { Loading } from "@/src/shared/components/common/Loading";
+import { NotFound } from "@/src/shared/components/common/NotFound";
 
 export default function ChatScreen() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();
@@ -136,7 +137,6 @@ export default function ChatScreen() {
   }, [chatId, session, getChatById, loadChats]);
 
   const handleSendMessage = useCallback(async (body: string, replyTo?: { eventId: string; body: string; sender: string }) => {
-    console.log("[ChatScreen] handleSendMessage called with replyTo:", replyTo);
     if (!body.trim()) return false;
     const success = await sendMessage(body, replyTo);
     if (success) {
@@ -176,28 +176,13 @@ export default function ChatScreen() {
     }
   }, [isLoadingMessages, hasMore, loadMore, messages, visibleDate]);
 
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
 
   if (isLoadingChat) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={THEME.colors.primary} />
-          <Text style={styles.loadingText}>Cargando chat...</Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <Loading text="Loading chats..." />;
   }
 
   if (!chatData) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.name}>Chat no encontrado</Text>
-      </SafeAreaView>
-    );
+    return <NotFound text="Chat not found" />
   }
 
   return (
@@ -274,15 +259,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: THEME.colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    color: "#888",
-    marginTop: 10,
   },
   name: {
     color: THEME.colors.text_title,
