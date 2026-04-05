@@ -38,6 +38,8 @@ export interface ChatRoom {
     displayname: string;
   };
   isInvite?: boolean;
+  lastMessage?: string;
+  lastMessageTimestamp?: number;
 }
 
 export interface InvitedRoom {

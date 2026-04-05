@@ -7,6 +7,55 @@ interface ReplyTo {
   sender: string;
 }
 
+// Obtiene el último mensaje de una sala (para mostrar en la lista de chats)
+export const getLastRoomMessage = async (
+  roomId: string,
+  token: string
+): Promise<{ body: string; timestamp: number } | null> => {
+  try {
+    const url = new URL(
+      `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/messages`
+    );
+
+    // direction "b" = backwards, desde el final hacia atrás
+    url.searchParams.set("dir", "b");
+    url.searchParams.set("limit", "1");
+
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    const data = await res.json();
+    const messages = data.chunk || [];
+
+    if (messages.length === 0) {
+      return null;
+    }
+
+    const lastEvent = messages[0];
+
+    // Solo mostrar mensajes (no eventos de membresía, redacciones, etc.)
+    if (lastEvent.type !== "m.room.message") {
+      return null;
+    }
+
+    return {
+      body: (lastEvent.content?.body as string) || "",
+      timestamp: lastEvent.origin_server_ts || Date.now(),
+    };
+  } catch (err) {
+    console.error("[getLastRoomMessage] Error:", err);
+    return null;
+  }
+};
+
 export const sendRoomMessage = async (
   roomId: string,
   token: string,

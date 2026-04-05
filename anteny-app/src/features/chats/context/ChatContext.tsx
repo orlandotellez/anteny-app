@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode, useMemo } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { getJoinedRooms, getInvitedRooms, getRoomMembers, leaveRoom, getRoomName, joinRoom, rejectInvite } from '@/src/services/matrix';
+import { getJoinedRooms, getInvitedRooms, getRoomMembers, leaveRoom, getRoomName, joinRoom, rejectInvite, getLastRoomMessage } from '@/src/services/matrix';
 import { getUsernameFromUserId } from '@/src/shared/utils/format';
 import { ChatRoom } from '@/src/shared/types/matrixRoom';
 import { authStorage } from '@/src/storage/auth-storage';
@@ -50,13 +50,16 @@ export function ChatProvider({ children }: ChatProviderProps) {
       console.log('[loadChats] invitedRooms:', invitedRooms);
 
       console.log('[loadChats] Processing rooms...');
-      // Para cada sala, obtener miembros y nombre
+      // Para cada sala, obtener miembros, nombre y último mensaje
       const chatRooms: ChatRoom[] = await Promise.all(
         joinedRoomIds.map(async (roomId: string) => {
           try {
             const members = await getRoomMembers(roomId, session.access_token!).catch(() => []);
             const roomName = await getRoomName(roomId, session.access_token!).catch(() => null);
             const currentUserId = session.user_id;
+
+            // Obtener el último mensaje de la sala
+            const lastMessageData = await getLastRoomMessage(roomId, session.access_token!).catch(() => null);
 
             // El endpoint /members devuelve eventos, no miembros directos
             // Para membership "join" → usar user_id
@@ -94,6 +97,8 @@ export function ChatProvider({ children }: ChatProviderProps) {
                 displayname: otherMembers[0].display_name || getUsernameFromUserId(otherMembers[0].user_id),
               } : undefined,
               name: chatName,
+              lastMessage: lastMessageData?.body || undefined,
+              lastMessageTimestamp: lastMessageData?.timestamp,
             };
           } catch (error) {
             console.error(`Error loading room ${roomId}:`, error);

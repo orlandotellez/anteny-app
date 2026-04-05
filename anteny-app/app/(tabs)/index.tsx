@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useChats } from "@/src/features/chats/context/ChatContext";
 import { router } from "expo-router";
 import { ChatRoom } from "@/src/shared/types/matrixRoom";
+import { formatRelativeTime } from "@/src/shared/utils/format";
 
 type FilterType = "all" | "direct" | "groups" | "invites";
 
@@ -192,8 +193,8 @@ export default function ChatScreen() {
             <ChatItem
               id={item.room_id}
               name={item.name || "Chat"}
-              lastMessage={item.isInvite ? "Tap to accept" : (item.isDirect ? "DM" : "Group chat")}
-              time={item.isInvite ? "Invite" : "now"}
+              lastMessage={item.isInvite ? "Tap to accept" : (item.lastMessage || (item.isDirect ? "DM" : "Group chat"))}
+              time={item.isInvite ? "Invite" : (item.lastMessageTimestamp ? formatRelativeTime(item.lastMessageTimestamp) : "now")}
               onPress={() => handleChatPress(item)}
               onLongPress={() => handleChatLongPress(item.room_id, item.name || "Chat", item.isInvite)}
             />

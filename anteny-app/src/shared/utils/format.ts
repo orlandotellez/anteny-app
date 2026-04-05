@@ -31,3 +31,25 @@ export const getColorFromName = (name: string): string => {
   
   return colors[sum % colors.length];
 };
+
+// Formatea un timestamp a una cadena relativa (ej: "5m", "1h", "Ayer")
+export const formatRelativeTime = (timestamp: number | undefined): string => {
+  if (!timestamp) return '';
+  
+  const now = Date.now();
+  const diff = now - timestamp;
+  
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (minutes < 1) return 'now';
+  if (minutes < 60) return `${minutes}m`;
+  if (hours < 24) return `${hours}h`;
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days}d`;
+  
+  // Si es más de una semana, mostrar fecha
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
