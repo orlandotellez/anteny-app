@@ -21,6 +21,7 @@ import { useRoomMessages } from "@/src/hooks/useRoomMessages";
 import { Loading } from "@/src/shared/components/common/Loading";
 import { NotFound } from "@/src/shared/components/common/NotFound";
 import { getRoomMembers } from "@/src/services/matrix/rooms";
+import { IChatData } from "@/src/shared/types/chats";
 
 export default function ChatScreen() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();
@@ -29,11 +30,7 @@ export default function ChatScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
 
   const [isLoadingChat, setIsLoadingChat] = useState(true);
-  const [chatData, setChatData] = useState<{
-    name: string;
-    otherUser?: { user_id: string; displayname: string };
-    isDirect: boolean;
-  } | null>(null);
+  const [chatData, setChatData] = useState<IChatData | null>(null);
   const [replyingToMessage, setReplyingToMessage] = useState<any | null>(null);
   const [visibleDate, setVisibleDate] = useState<string>("Today");
 
@@ -51,12 +48,12 @@ export default function ChatScreen() {
   } = useRoomMessages({
     roomId: chatId || "",
     initialLimit: 50,
-    onNewMessage: (msg) => {
-      console.log("[ChatScreen] Nuevo mensaje:", msg.body);
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    },
+    //    onNewMessage: (msg) => {
+    //      console.log("[ChatScreen] Nuevo mensaje:", msg.body);
+    //      setTimeout(() => {
+    //        scrollViewRef.current?.scrollToEnd({ animated: true });
+    //      }, 100);
+    //    },
     enabled: !!chatId,
   });
 
@@ -165,7 +162,7 @@ export default function ChatScreen() {
   }, []);
 
   const handleScroll = useCallback((event: any) => {
-    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    const { contentOffset } = event.nativeEvent;
     const isAtTop = contentOffset.y < 50;
 
     if (!isLoadingMessages && hasMore && isAtTop) {

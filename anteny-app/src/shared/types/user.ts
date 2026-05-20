@@ -13,3 +13,8 @@ export interface IUserProfile {
   status: string;
   isOnline?: boolean;
 }
+
+export interface IOtherUser {
+  user_id: string;
+  displayname: string
+}
