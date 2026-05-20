@@ -1,3 +1,5 @@
+import { MatrixEvent } from "../matrixEvent";
+
 export interface MatrixMessagesApiResponse {
   chunk: MatrixEvent[];
   start: string;

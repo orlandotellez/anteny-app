@@ -12,13 +12,13 @@ import { THEME } from "@/src/shared/lib/theme";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/src/features/auth/login/components/Header";
-import { loginUser } from "@/src/services/matrix";
 import { FormLogin } from "@/src/features/auth/login/components/FormLogin";
 import { NotAccount } from "@/src/features/auth/login/components/NotAccount";
 import { Footer } from "@/src/features/auth/login/components/Footer";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { useProfile } from "@/src/features/profile/context/ProfileContext";
 import { useChats } from "@/src/features/chats/context/ChatContext";
+import { loginUser } from "@/src/services/matrix/auth";
 
 export default function LoginScreen() {
   const { saveSecureStore } = useAuth();

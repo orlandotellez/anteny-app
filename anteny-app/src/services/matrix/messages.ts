@@ -1,5 +1,5 @@
 import { ENV } from "@/src/shared/constants/env";
-import { LastRoomMessage, MatrixMessagesApiResponse, MatrixSendMessageApiResponse, RoomMessagesResult } from "@/src/shared/types/api";
+import { LastRoomMessage, MatrixMessagesApiResponse, MatrixSendMessageApiResponse, RoomMessagesResult } from "@/src/shared/types/matrix-api";
 import { MSG_TYPE, MatrixMessageContent } from "@/src/shared/types/matrixMessage";
 
 // Tipos de dominio

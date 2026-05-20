@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getRoomMessages, sendRoomMessage, redactMessage, editMessage as editMessageApi } from "../services/matrix";
 import { MatrixEvent } from "../shared/types/matrixEvent";
 import { useSyncLoop } from "./useSyncLoop";
 import { authStorage } from "../storage/auth-storage";
 import { Message } from "../shared/types/matrixMessage";
+import { getRoomMessages, redactMessage, sendRoomMessage, editMessage as editMessageApi } from "../services/matrix/messages";
 
 interface UseRoomMessagesOptions {
   roomId: string;

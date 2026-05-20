@@ -15,12 +15,12 @@ import { Input } from "@/src/features/[chatId]/components/Input";
 import { Conversation } from "@/src/features/[chatId]/components/Conversation";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useChats } from "@/src/features/chats/context/ChatContext";
-import { getRoomMembers } from "@/src/services/matrix";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { RoomMember } from "@/src/shared/types/matrixRoom";
 import { useRoomMessages } from "@/src/hooks/useRoomMessages";
 import { Loading } from "@/src/shared/components/common/Loading";
 import { NotFound } from "@/src/shared/components/common/NotFound";
+import { getRoomMembers } from "@/src/services/matrix/rooms";
 
 export default function ChatScreen() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();

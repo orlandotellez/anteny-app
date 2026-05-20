@@ -1,9 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { getJoinedRooms, getInvitedRooms, getRoomMembers, leaveRoom, getRoomName, joinRoom, rejectInvite, getLastRoomMessage } from '@/src/services/matrix';
 import { getUsernameFromUserId } from '@/src/shared/utils/format';
-import { ChatRoom } from '@/src/shared/types/matrixRoom';
+import { ChatRoom, RoomMember } from '@/src/shared/types/matrixRoom';
+import { MatrixEvent, MemberEventContent } from '@/src/shared/types/matrixEvent';
 import { authStorage } from '@/src/storage/auth-storage';
+import { getInvitedRooms, getJoinedRooms, getRoomMembers, getRoomName, joinRoom, leaveRoom, rejectInvite } from '@/src/services/matrix/rooms';
+import { getLastRoomMessage } from '@/src/services/matrix/messages';
 
 interface ChatContextType {
   chats: ChatRoom[];
@@ -51,28 +53,47 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
       console.log('[loadChats] Processing rooms...');
       // Para cada sala, obtener miembros, nombre y último mensaje
-      const chatRooms: ChatRoom[] = await Promise.all(
+      const chatRooms: (ChatRoom | null)[] = await Promise.all(
         joinedRoomIds.map(async (roomId: string) => {
           try {
-            const members = await getRoomMembers(roomId, session.access_token!).catch(() => []);
+            const memberEvents = await getRoomMembers(roomId, session.access_token!).catch(() => []);
             const roomName = await getRoomName(roomId, session.access_token!).catch(() => null);
             const currentUserId = session.user_id;
 
             // Obtener el último mensaje de la sala
             const lastMessageData = await getLastRoomMessage(roomId, session.access_token!).catch(() => null);
 
+            // Convertir eventos de miembros a RoomMember
+            const members: RoomMember[] = memberEvents
+              .filter((m: MatrixEvent) => {
+                const content = m.content as unknown as MemberEventContent | undefined;
+                return content?.membership === 'join';
+              })
+              .map((m: MatrixEvent) => {
+                const content = m.content as unknown as MemberEventContent | undefined;
+                return {
+                  user_id: m.state_key ?? m.sender,
+                  display_name: content?.displayname,
+                  avatar_url: content?.avatar_url,
+                };
+              });
+
             // El endpoint /members devuelve eventos, no miembros directos
-            // Para membership "join" → usar user_id
+            // Para membership "join" → usar state_key (o sender si no hay state_key)
             // Para membership "invite" → usar state_key
-            const otherMembers = members.filter((m: any) => {
-              const memberUserId = m.content?.membership === 'invite'
-                ? m.state_key
-                : m.user_id;
-              return memberUserId !== currentUserId;
-            }).map((m: any) => ({
-              user_id: m.content?.membership === 'invite' ? m.state_key : m.user_id,
-              display_name: m.content?.displayname || null,
-            }));
+            const otherMembers = memberEvents
+              .filter((m: MatrixEvent) => {
+                const content = m.content as unknown as MemberEventContent | undefined;
+                const memberUserId = m.state_key ?? m.sender;
+                return memberUserId !== currentUserId;
+              })
+              .map((m: MatrixEvent) => {
+                const content = m.content as unknown as MemberEventContent | undefined;
+                return {
+                  user_id: m.state_key ?? m.sender,
+                  display_name: content?.displayname || null,
+                };
+              });
 
             // Es un DM si tiene exactamente 1 otro miembro
             const isDirect = otherMembers.length === 1;
@@ -135,7 +156,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
       const uniqueChats: ChatRoom[] = [];
 
       for (const chat of chatRooms) {
-        if (!seenRoomIds.has(chat.room_id)) {
+        if (chat && !seenRoomIds.has(chat.room_id)) {
           seenRoomIds.add(chat.room_id);
           uniqueChats.push(chat);
         }

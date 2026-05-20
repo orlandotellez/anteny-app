@@ -1,6 +1,11 @@
 import { ENV } from "@/src/shared/constants/env";
+import { UserDirectorySearchResponse, UserDirectoryResult } from "@/src/shared/types/matrix-api";
 
-export const searchUsers = async (searchTerm: string, token: string) => {
+export const searchUsers = async (
+  searchTerm: string,
+  token: string,
+  limit: number = 20
+): Promise<UserDirectoryResult[]> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/user_directory/search`,
@@ -12,18 +17,18 @@ export const searchUsers = async (searchTerm: string, token: string) => {
         },
         body: JSON.stringify({
           search_term: searchTerm,
-          limit: 20,
+          limit,
         }),
       }
     );
 
-    const data = await res.json();
-
     if (!res.ok) {
-      throw new Error(data.error || "Error buscando usuarios");
+      const error = await res.json();
+      throw new Error(error.error || "Error buscando usuarios");
     }
 
-    return data.results || [];
+    const data: UserDirectorySearchResponse = await res.json();
+    return data.results ?? [];
   } catch (err) {
     console.error("searchUsers error:", err);
     throw err;

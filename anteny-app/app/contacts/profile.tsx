@@ -3,7 +3,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView, StyleSheet, Alert, } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
-import { createDirectChat } from "@/src/services/matrix";
 import { getUsernameFromUserId } from "@/src/shared/utils/format";
 import { useChats } from "@/src/features/chats/context/ChatContext";
 import { Header } from "@/src/features/[chatId]/components/profile/Header";
@@ -11,6 +10,7 @@ import { AvatarProfile } from "@/src/features/contacts/components/profile/Avatar
 import { Info } from "@/src/features/contacts/components/profile/Info";
 import { Actions } from "@/src/features/contacts/components/profile/Actions";
 import { THEME } from "@/src/shared/lib/theme";
+import { createDirectChat } from "@/src/services/matrix/rooms";
 
 export default function ContactProfileScreen() {
   const router = useRouter();

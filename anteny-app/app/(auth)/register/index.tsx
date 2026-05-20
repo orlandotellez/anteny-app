@@ -11,7 +11,6 @@ import {
 import { THEME } from "@/src/shared/lib/theme";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { registerUser, setDisplayName } from "@/src/services/matrix";
 import { Header } from "@/src/features/auth/register/components/Header";
 import { FormRegister } from "@/src/features/auth/register/components/FormRegister";
 import { HaveAccount } from "@/src/features/auth/register/components/HaveAccount";
@@ -19,6 +18,8 @@ import { Footer } from "@/src/features/auth/register/components/Footer";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { useProfile } from "@/src/features/profile/context/ProfileContext";
 import { useChats } from "@/src/features/chats/context/ChatContext";
+import { registerUser } from "@/src/services/matrix/auth";
+import { setDisplayName } from "@/src/services/matrix/profile";
 
 export default function RegisterScreen() {
   const { saveSecureStore } = useAuth();

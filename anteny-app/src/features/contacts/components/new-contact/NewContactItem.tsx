@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { THEME } from "@/src/shared/lib/theme";
-import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Alert } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
-import { createDirectChat } from "@/src/services/matrix";
 import { useChats } from "@/src/features/chats/context/ChatContext";
 import { router } from "expo-router";
 import { getUsernameFromUserId } from "@/src/shared/utils/format";
+import { createDirectChat } from "@/src/services/matrix/rooms";
 
 interface NewContactItemProps {
   user_id: string;
@@ -21,7 +21,7 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   const hasExistingChat = !!existingChatRoomId;
-  
+
   // Si hay displayname usarlo, si no usar getUsernameFromUserId
   const displayName = displayname || getUsernameFromUserId(user_id);
   const avatarInitial = displayName ? displayName[0].toUpperCase() : "?";

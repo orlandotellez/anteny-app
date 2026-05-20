@@ -1,7 +1,20 @@
 import { ENV } from "@/src/shared/constants/env";
-import { IUserProfile } from "@/src/shared/types/user";
+import { ProfileResponse, UploadAvatarResponse } from "@/src/shared/types/matrix-api";
 
-export const getProfile = async (userId: string, token: string) => {
+// ============================================
+// Tipos de dominio
+// ============================================
+
+export interface UserProfileData {
+  displayName: string;
+  avatarUrl: string;
+}
+
+// ============================================
+// Funciones del servicio
+// ============================================
+
+export const getProfile = async (userId: string, token: string): Promise<UserProfileData> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/profile/${encodeURIComponent(userId)}`,
@@ -13,16 +26,16 @@ export const getProfile = async (userId: string, token: string) => {
       }
     );
 
-    const data = await res.json();
-    console.log(data);
-
     if (!res.ok) {
-      throw new Error(data.error || "Error obteniendo perfil");
+      const error = await res.json();
+      throw new Error(error.error || "Error obteniendo perfil");
     }
 
+    const data: ProfileResponse = await res.json();
+
     return {
-      displayName: data.displayname || "",
-      avatarUrl: data.avatar_url || "",
+      displayName: data.displayname ?? "",
+      avatarUrl: data.avatar_url ?? "",
     };
   } catch (err) {
     console.error("getProfile error:", err);
@@ -34,7 +47,7 @@ export const setDisplayName = async (
   userId: string,
   token: string,
   displayName: string
-): Promise<IUserProfile> => {
+): Promise<void> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/profile/${encodeURIComponent(userId)}/displayname`,
@@ -51,12 +64,9 @@ export const setDisplayName = async (
     );
 
     if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || "Error al guardar nombre");
+      const error = await res.json();
+      throw new Error(error.error || "Error al guardar nombre");
     }
-    const profile = await res.json();
-
-    return profile;
   } catch (err) {
     console.error("setDisplayName error:", err);
     throw err;
@@ -72,17 +82,17 @@ export const uploadAvatar = async (
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "image/jpeg", // o png
+        "Content-Type": "image/jpeg",
       },
       body: file,
     });
 
-    const data = await res.json();
-
     if (!res.ok) {
-      throw new Error(data.error || "Error subiendo imagen");
+      const error = await res.json();
+      throw new Error(error.error || "Error subiendo imagen");
     }
 
+    const data: UploadAvatarResponse = await res.json();
     return data.content_uri;
   } catch (err) {
     console.error("uploadAvatar error:", err);
@@ -94,7 +104,7 @@ export const setAvatar = async (
   userId: string,
   token: string,
   avatarUrl: string
-) => {
+): Promise<void> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/profile/${encodeURIComponent(userId)}/avatar_url`,
@@ -111,8 +121,8 @@ export const setAvatar = async (
     );
 
     if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || "Error seteando avatar");
+      const error = await res.json();
+      throw new Error(error.error || "Error seteando avatar");
     }
   } catch (err) {
     console.error("setAvatar error:", err);

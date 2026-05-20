@@ -19,7 +19,8 @@ export const registerUser = async ({ username, password }: IRegisterPayload): Pr
     });
 
     if (!res.ok) {
-      throw new Error("Error al registrar usuario");
+      const error = await res.json();
+      throw new Error(error.error || "Error al registrar usuario");
     }
 
     const session: MatrixSession = await res.json();
@@ -49,7 +50,8 @@ export const loginUser = async ({ username, password }: ILoginPayload): Promise<
     });
 
     if (!res.ok) {
-      throw new Error("Error al iniciar sesión");
+      const error = await res.json();
+      throw new Error(error.error || "Error al iniciar sesión");
     }
 
     const session: MatrixSession = await res.json();

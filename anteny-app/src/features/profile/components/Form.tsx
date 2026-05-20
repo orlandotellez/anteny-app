@@ -2,9 +2,9 @@ import { StyleSheet, View } from "react-native"
 import { ProfileField } from "./ProfileField"
 import { THEME } from "@/src/shared/lib/theme"
 import { useAuth } from "@/src/features/auth/context/AuthContext"
-import { setDisplayName } from "@/src/services/matrix"
 import { useProfile } from "@/src/features/profile/context/ProfileContext"
 import { getUsernameFromUserId } from "@/src/shared/utils/format"
+import { setDisplayName } from "@/src/services/matrix/profile"
 
 interface FormProps {
   onDisplayNameUpdate?: (newName: string) => Promise<void>;

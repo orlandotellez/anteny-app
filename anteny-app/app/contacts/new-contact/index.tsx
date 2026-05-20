@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   FlatList,
@@ -11,8 +11,8 @@ import { Header } from "@/src/features/contacts/components/new-contact/Header";
 import { SearchNewContact } from "@/src/features/contacts/components/new-contact/SearchNewContact";
 import { NewContactItem } from "@/src/features/contacts/components/new-contact/NewContactItem";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
-import { searchUsers } from "@/src/services/matrix";
 import { useChats } from "@/src/features/chats/context/ChatContext";
+import { searchUsers } from "@/src/services/matrix/users";
 
 interface UserResult {
   user_id: string;

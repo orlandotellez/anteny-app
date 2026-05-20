@@ -1,6 +1,16 @@
 import { ENV } from "@/src/shared/constants/env";
 import { InvitedRoom } from "@/src/shared/types/matrixRoom";
+import {
+  CreateRoomResponse,
+  GetJoinedRoomsResponse,
+  GetRoomMembersResponse,
+  GetRoomNameResponse,
+  InviteStateEvent,
+  InviteStateRoomData,
+  JoinRoomResponse,
+} from "@/src/shared/types/matrix-api";
 
+// Funciones del servicio
 export const createDirectChat = async (
   userId: string,
   token: string
@@ -22,12 +32,12 @@ export const createDirectChat = async (
       }
     );
 
-    const data = await res.json();
-
     if (!res.ok) {
-      throw new Error(data.error || "Error creando chat directo");
+      const error = await res.json();
+      throw new Error(error.error || "Error creando chat directo");
     }
 
+    const data: CreateRoomResponse = await res.json();
     return data.room_id;
   } catch (err) {
     console.error("createDirectChat error:", err);
@@ -35,7 +45,7 @@ export const createDirectChat = async (
   }
 };
 
-export const getJoinedRooms = async (token: string) => {
+export const getJoinedRooms = async (token: string): Promise<string[]> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/joined_rooms`,
@@ -47,42 +57,36 @@ export const getJoinedRooms = async (token: string) => {
       }
     );
 
-    const data = await res.json();
-
     if (!res.ok) {
-      throw new Error(data.error || "Error obteniendo salas");
+      const error = await res.json();
+      throw new Error(error.error || "Error obteniendo salas");
     }
 
-    return data.joined_rooms || [];
+    const data: GetJoinedRoomsResponse = await res.json();
+    return data.joined_rooms ?? [];
   } catch (err) {
     console.error("getJoinedRooms error:", err);
     throw err;
   }
 };
 
-
 // esta función devuelve todas las salas donde hay invitación pero el usuario no ha aceptado
 export const getInvitedRooms = async (token: string, since?: string): Promise<InvitedRoom[]> => {
   try {
-    // Creamos la URL del endpoint /sync de Matrix
     const url = new URL(`${ENV.MATRIX_URL}/_matrix/client/v3/sync`);
 
-    // timeout=0 → respuesta inmediata (sin long polling)
-    url.searchParams.set('timeout', '0');
+    url.searchParams.set("timeout", "0");
 
-    // since → permite obtener solo cambios desde la última sync
     if (since) {
-      url.searchParams.set('since', since);
+      url.searchParams.set("since", since);
     }
 
-    // filter → pedimos SOLO las invitaciones (no toda la data de rooms)
-    url.searchParams.set('filter', JSON.stringify({
+    url.searchParams.set("filter", JSON.stringify({
       rooms: {
-        invite: true
-      }
+        invite: true,
+      },
     }));
 
-    // Hacemos la petición a Matrix
     const res = await fetch(url.toString(), {
       method: "GET",
       headers: {
@@ -90,53 +94,42 @@ export const getInvitedRooms = async (token: string, since?: string): Promise<In
       },
     });
 
-    const data = await res.json();
-
-    // Si hay error, devolvemos array vacío
     if (!res.ok) {
-      console.error("getInvitedRooms error:", data);
+      console.error("getInvitedRooms error:", await res.json());
       return [];
     }
 
-    // Aquí vamos a construir el resultado final
+    const data = await res.json();
     const invitedRooms: InvitedRoom[] = [];
 
-    // Verificamos si existen salas con invitaciones
     if (data.rooms?.invite) {
-
-      // Recorremos cada sala donde estamos invitados
       for (const [roomId, roomData] of Object.entries(data.rooms.invite)) {
+        const inviteStateRoomData = roomData as InviteStateRoomData;
+        const events = inviteStateRoomData.invite_state?.events ?? [];
 
-        // invite_state contiene eventos relacionados con la invitación
-        const inviteState = (roomData as any).invite_state;
-        const events = inviteState?.events || [];
+        // Buscar evento de invitación
+        const memberEvent = events.find(
+          (e: InviteStateEvent) =>
+            e.type === "m.room.member" && (e.content as { membership?: string })?.membership === "invite"
+        ) as InviteStateEvent | undefined;
 
-        // Buscamos el evento de tipo "m.room.member" con membership "invite"
-        // Este evento representa la invitación
-        const memberEvent = events.find((e: any) =>
-          e.type === 'm.room.member' && e.content?.membership === 'invite'
-        );
+        const inviterUserId = memberEvent?.sender ?? null;
 
-        // El sender del evento es quien nos invitó
-        const inviterUserId = memberEvent?.sender;
+        // Buscar evento del invitador para obtener su displayname
+        const inviterMemberEvent = events.find(
+          (e: InviteStateEvent) =>
+            e.type === "m.room.member" &&
+            (e.content as { membership?: string })?.membership === "join" &&
+            e.state_key === inviterUserId
+        ) as InviteStateEvent | undefined;
 
-        // Ahora buscamos el evento donde ese usuario (el que invita) está unido a la sala
-        // para poder obtener su displayname
-        const inviterMemberEvent = events.find((e: any) =>
-          e.type === 'm.room.member' &&
-          e.content?.membership === 'join' &&
-          e.state_key === inviterUserId
-        );
-
-        // Extraemos el nombre del invitador (si existe)
         const inviterName =
-          inviterMemberEvent?.content?.displayname || inviterUserId || null;
+          (inviterMemberEvent?.content as { displayname?: string })?.displayname ?? inviterUserId ?? null;
 
-        // Agregamos la sala al resultado final
         invitedRooms.push({
           room_id: roomId,
-          inviter_user_id: inviterUserId,
-          inviter_name: inviterName,
+          inviter_user_id: inviterUserId ?? undefined,
+          inviter_name: inviterName ?? undefined,
         });
       }
     }
@@ -148,7 +141,7 @@ export const getInvitedRooms = async (token: string, since?: string): Promise<In
   }
 };
 
-export const getRoomDetails = async (roomId: string, token: string) => {
+export const getRoomDetails = async (roomId: string, token: string): Promise<unknown> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state`,
@@ -160,13 +153,12 @@ export const getRoomDetails = async (roomId: string, token: string) => {
       }
     );
 
-    const data = await res.json();
-
     if (!res.ok) {
-      throw new Error(data.error || "Error obteniendo detalles de la sala");
+      const error = await res.json();
+      throw new Error(error.error || "Error obteniendo detalles de la sala");
     }
 
-    return data;
+    return await res.json();
   } catch (err) {
     console.error("getRoomDetails error:", err);
     throw err;
@@ -185,20 +177,20 @@ export const getRoomMembers = async (roomId: string, token: string) => {
       }
     );
 
-    const data = await res.json();
-
     if (!res.ok) {
-      throw new Error(data.error || "Error obteniendo miembros");
+      const error = await res.json();
+      throw new Error(error.error || "Error obteniendo miembros");
     }
 
-    return data.chunk || [];
+    const data: GetRoomMembersResponse = await res.json();
+    return data.chunk ?? [];
   } catch (err) {
     console.error("getRoomMembers error:", err);
     throw err;
   }
 };
 
-export const getRoomName = async (roomId: string, token: string) => {
+export const getRoomName = async (roomId: string, token: string): Promise<string | null> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state/m.room.name`,
@@ -210,20 +202,19 @@ export const getRoomName = async (roomId: string, token: string) => {
       }
     );
 
-    const data = await res.json();
-
     if (!res.ok) {
-      return null; // The room may not have a name
+      return null;
     }
 
-    return data.name || null;
+    const data: GetRoomNameResponse = await res.json();
+    return data.name ?? null;
   } catch (err) {
     console.error("getRoomName error:", err);
     return null;
   }
 };
 
-export const isRoomDirect = async (roomId: string, token: string) => {
+export const isRoomDirect = async (roomId: string, token: string): Promise<boolean> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state/m.room.direct`,
@@ -235,13 +226,11 @@ export const isRoomDirect = async (roomId: string, token: string) => {
       }
     );
 
-    const data = await res.json();
-
     if (!res.ok) {
-      return false; // Assume not direct if cannot get
+      return false;
     }
 
-    // If the object has keys, it's direct
+    const data = await res.json();
     return Object.keys(data).length > 0;
   } catch (err) {
     console.error("isRoomDirect error:", err);
@@ -249,7 +238,7 @@ export const isRoomDirect = async (roomId: string, token: string) => {
   }
 };
 
-export const leaveRoom = async (roomId: string, token: string) => {
+export const leaveRoom = async (roomId: string, token: string): Promise<boolean> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/leave`,
@@ -263,10 +252,9 @@ export const leaveRoom = async (roomId: string, token: string) => {
       }
     );
 
-    const data = await res.json();
-
     if (!res.ok) {
-      throw new Error(data.error || "Error abandonando la sala");
+      const error = await res.json();
+      throw new Error(error.error || "Error abandonando la sala");
     }
 
     return true;
@@ -276,7 +264,7 @@ export const leaveRoom = async (roomId: string, token: string) => {
   }
 };
 
-export const joinRoom = async (roomId: string, token: string) => {
+export const joinRoom = async (roomId: string, token: string): Promise<string> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/join`,
@@ -290,12 +278,12 @@ export const joinRoom = async (roomId: string, token: string) => {
       }
     );
 
-    const data = await res.json();
-
     if (!res.ok) {
-      throw new Error(data.error || "Error uniéndose a la sala");
+      const error = await res.json();
+      throw new Error(error.error || "Error uniéndose a la sala");
     }
 
+    const data: JoinRoomResponse = await res.json();
     return data.room_id;
   } catch (err) {
     console.error("joinRoom error:", err);
@@ -303,9 +291,9 @@ export const joinRoom = async (roomId: string, token: string) => {
   }
 };
 
-export const rejectInvite = async (roomId: string, token: string) => {
+export const rejectInvite = async (roomId: string, token: string): Promise<boolean> => {
   try {
-    console.log('[rejectInvite] Rejecting invite for room:', roomId);
+    console.log("[rejectInvite] Rejecting invite for room:", roomId);
 
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/leave`,
@@ -321,10 +309,9 @@ export const rejectInvite = async (roomId: string, token: string) => {
       }
     );
 
-    const data = await res.json();
-
     if (!res.ok) {
-      throw new Error(data.error || "Error rechazando la invitación");
+      const error = await res.json();
+      throw new Error(error.error || "Error rechazando la invitación");
     }
 
     return true;
