@@ -1,5 +1,5 @@
+import { ENV } from "@/src/shared/constants/env";
 import { InvitedRoom } from "@/src/shared/types/matrixRoom";
-import { ENV } from "../../shared/constants/env";
 
 export const createDirectChat = async (
   userId: string,

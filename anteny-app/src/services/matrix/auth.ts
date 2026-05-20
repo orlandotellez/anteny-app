@@ -1,9 +1,10 @@
-import { ENV } from "../../shared/constants/env";
-import { MatrixSession } from "../../shared/types/matrix";
+import { ENV } from "@/src/shared/constants/env";
+import { ILoginPayload, IRegisterPayload } from "@/src/shared/types/auth";
+import { MatrixSession } from "@/src/shared/types/matrixSession";
 
-export const registerUser = async (username: string, password: string): Promise<MatrixSession> => {
+export const registerUser = async ({ username, password }: IRegisterPayload): Promise<MatrixSession> => {
   try {
-    const resMatrix = await fetch(`${ENV.MATRIX_URL}/_matrix/client/v3/register`, {
+    const res = await fetch(`${ENV.MATRIX_URL}/_matrix/client/v3/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -17,7 +18,11 @@ export const registerUser = async (username: string, password: string): Promise<
       }),
     });
 
-    const session = await resMatrix.json();
+    if (!res.ok) {
+      throw new Error("Error al registrar usuario");
+    }
+
+    const session: MatrixSession = await res.json();
 
     return session;
   } catch (err) {
@@ -26,7 +31,7 @@ export const registerUser = async (username: string, password: string): Promise<
   }
 };
 
-export const loginUser = async (username: string, password: string) => {
+export const loginUser = async ({ username, password }: ILoginPayload): Promise<MatrixSession> => {
   try {
     const res = await fetch(`${ENV.MATRIX_URL}/_matrix/client/v3/login`, {
       method: "POST",
@@ -43,11 +48,11 @@ export const loginUser = async (username: string, password: string) => {
       }),
     });
 
-    const session = await res.json();
-
     if (!res.ok) {
-      throw new Error(session.error || "Error al iniciar sesión");
+      throw new Error("Error al iniciar sesión");
     }
+
+    const session: MatrixSession = await res.json();
 
     return session;
   } catch (err) {

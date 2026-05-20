@@ -1,3 +1,4 @@
+import { MatrixEvent } from "./matrixEvent";
 import { InvitedRoomData, RoomData } from "./matrixRoom";
 
 export interface SyncResponse {
@@ -13,6 +14,14 @@ export interface SyncResponse {
   device_list?: Record<string, unknown>;
 }
 
+export interface ProcessSyncResponse {
+  newMessages: Map<string, MatrixEvent[]>;
+  newInvites: string[];
+  joinedRooms: string[];
+  leftRooms: string[];
+  redactions: Map<string, string[]>;
+  editedMessages: Map<string, MatrixEvent[]>;
+}
 
 export interface SyncOptions {
   token: string;

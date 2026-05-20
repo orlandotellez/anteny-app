@@ -60,7 +60,7 @@ export default function RegisterScreen() {
     setGlobalError(null);
     try {
       // Registrar usuario en Matrix
-      const session = await registerUser(form.username, form.password);
+      const session = await registerUser({ username: form.username, password: form.password });
 
       // Guardar sesión
       await saveSecureStore(session);
@@ -74,7 +74,7 @@ export default function RegisterScreen() {
         displayName: form.displayName,
         status: "",
       });
-      
+
       // Cargar chats
       await loadChats();
 

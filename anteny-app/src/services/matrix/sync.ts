@@ -1,6 +1,6 @@
-import { SyncOptions, SyncResponse } from "@/src/shared/types/matrixSync";
-import { ENV } from "../../shared/constants/env";
+import { ProcessSyncResponse, SyncOptions, SyncResponse } from "@/src/shared/types/matrixSync";
 import { MatrixEvent } from "@/src/shared/types/matrixEvent";
+import { ENV } from "@/src/shared/constants/env";
 
 const DEFAULT_TIMEOUT = 30000;
 const DEFAULT_FILTER = {
@@ -46,25 +46,16 @@ export const matrixSync = async (options: SyncOptions): Promise<SyncResponse | n
       return null;
     }
 
-    const data = await res.json();
-    return data as SyncResponse;
+    const data: SyncResponse = await res.json();
+
+    return data;
   } catch (err) {
     console.error("[matrixSync] Network error:", err);
     return null;
   }
 };
 
-export const processSyncResponse = (
-  syncData: SyncResponse,
-  currentUserId: string
-): {
-  newMessages: Map<string, MatrixEvent[]>;
-  newInvites: string[];
-  joinedRooms: string[];
-  leftRooms: string[];
-  redactions: Map<string, string[]>;
-  editedMessages: Map<string, MatrixEvent[]>;
-} => {
+export const processSyncResponse = (syncData: SyncResponse, currentUserId: string): ProcessSyncResponse => {
   const newMessages = new Map<string, MatrixEvent[]>();
   const newInvites: string[] = [];
   const joinedRooms: string[] = [];
@@ -123,12 +114,14 @@ export const processSyncResponse = (
     }
   }
 
-  return {
+  const response: ProcessSyncResponse = {
     newMessages,
     newInvites,
     joinedRooms,
     leftRooms,
     redactions,
     editedMessages,
-  };
+  }
+
+  return response
 };

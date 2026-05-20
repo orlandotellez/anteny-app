@@ -56,14 +56,14 @@ export default function LoginScreen() {
     setLoading(true);
     setGlobalError(null);
     try {
-      const session = await loginUser(form.username, form.password);
+      const session = await loginUser({ username: form.username, password: form.password });
 
       // Guardar sesión en SecureStore
       await saveSecureStore(session);
 
       // Cargar perfil desde Matrix
       await fetchProfileFromMatrix(session.user_id, session.access_token);
-      
+
       // Cargar chats
       await loadChats();
 

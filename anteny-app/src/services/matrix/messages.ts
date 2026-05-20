@@ -1,6 +1,8 @@
 import { ENV } from "@/src/shared/constants/env";
-import { MatrixEvent } from "@/src/shared/types/matrixEvent";
+import { LastRoomMessage, MatrixMessagesApiResponse, MatrixSendMessageApiResponse, RoomMessagesResult } from "@/src/shared/types/api";
+import { MSG_TYPE, MatrixMessageContent } from "@/src/shared/types/matrixMessage";
 
+// Tipos de dominio
 interface ReplyTo {
   eventId: string;
   body: string;
@@ -8,10 +10,7 @@ interface ReplyTo {
 }
 
 // Obtiene el último mensaje de una sala (para mostrar en la lista de chats)
-export const getLastRoomMessage = async (
-  roomId: string,
-  token: string
-): Promise<{ body: string; timestamp: number } | null> => {
+export const getLastRoomMessage = async (roomId: string, token: string): Promise<LastRoomMessage | null> => {
   try {
     const url = new URL(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/messages`
@@ -32,8 +31,8 @@ export const getLastRoomMessage = async (
       return null;
     }
 
-    const data = await res.json();
-    const messages = data.chunk || [];
+    const data: MatrixMessagesApiResponse = await res.json();
+    const messages = data.chunk ?? [];
 
     if (messages.length === 0) {
       return null;
@@ -46,10 +45,15 @@ export const getLastRoomMessage = async (
       return null;
     }
 
-    return {
-      body: (lastEvent.content?.body as string) || "",
-      timestamp: lastEvent.origin_server_ts || Date.now(),
-    };
+    const content = lastEvent.content as unknown as MatrixMessageContent | undefined;
+    const body = content?.body ?? "";
+
+    const result: LastRoomMessage = {
+      body,
+      timestamp: lastEvent.origin_server_ts ?? Date.now(),
+    }
+
+    return result
   } catch (err) {
     console.error("[getLastRoomMessage] Error:", err);
     return null;
@@ -60,13 +64,13 @@ export const sendRoomMessage = async (
   roomId: string,
   token: string,
   body: string,
-  msgtype: string = "m.text",
+  msgtype: MSG_TYPE = "m.text",
   replyTo?: ReplyTo | null
 ): Promise<string | null> => {
   try {
     const txnId = `m${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    const content: Record<string, any> = {
+    const content: MatrixMessageContent = {
       msgtype,
       body,
     };
@@ -75,6 +79,7 @@ export const sendRoomMessage = async (
       content["m.relates_to"] = {
         rel_type: "m.in_reply_to",
         event_id: replyTo.eventId,
+        "m.in_reply_to": { event_id: replyTo.eventId },
       };
       content["m.fallback_text"] = `<${replyTo.sender}> ${replyTo.body}`;
     }
@@ -97,7 +102,8 @@ export const sendRoomMessage = async (
       return null;
     }
 
-    const data = await res.json();
+    const data: MatrixSendMessageApiResponse = await res.json();
+
     return data.event_id;
   } catch (err) {
     console.error("[sendRoomMessage] Network error:", err);
@@ -110,10 +116,23 @@ export const editMessage = async (
   eventId: string,
   token: string,
   newBody: string,
-  msgtype: string = "m.text"
+  msgtype: MSG_TYPE = "m.text"
 ): Promise<string | null> => {
   try {
     const txnId = `m${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    const content: MatrixMessageContent = {
+      msgtype,
+      body: newBody,
+      "m.new_content": {
+        msgtype,
+        body: newBody,
+      },
+      "m.relates_to": {
+        rel_type: "m.replace",
+        event_id: eventId,
+      },
+    };
 
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/send/m.room.message/${txnId}`,
@@ -123,18 +142,7 @@ export const editMessage = async (
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          "msgtype": msgtype,
-          "body": newBody,
-          "m.new_content": {
-            "msgtype": msgtype,
-            "body": newBody,
-          },
-          "m.relates_to": {
-            "rel_type": "m.replace",
-            "event_id": eventId,
-          },
-        }),
+        body: JSON.stringify(content),
       }
     );
 
@@ -144,7 +152,8 @@ export const editMessage = async (
       return null;
     }
 
-    const data = await res.json();
+    const data: MatrixSendMessageApiResponse = await res.json();
+
     return data.event_id;
   } catch (err) {
     console.error("[editMessage] Network error:", err);
@@ -168,9 +177,7 @@ export const redactMessage = async (
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          reason,
-        }),
+        body: JSON.stringify({ reason }),
       }
     );
 
@@ -193,11 +200,7 @@ export const getRoomMessages = async (
   direction: "b" | "f" = "b",
   from?: string,
   limit: number = 20
-): Promise<{
-  messages: MatrixEvent[];
-  endCursor: string | null;
-  hasMore: boolean;
-}> => {
+): Promise<RoomMessagesResult> => {
   try {
     const url = new URL(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/messages`
@@ -223,13 +226,15 @@ export const getRoomMessages = async (
       return { messages: [], endCursor: null, hasMore: false };
     }
 
-    const data = await res.json();
+    const data: MatrixMessagesApiResponse = await res.json();
 
-    return {
-      messages: data.chunk || [],
-      endCursor: data.end || null,
-      hasMore: data.chunk?.length === limit,
-    };
+    const result: RoomMessagesResult = {
+      messages: data.chunk ?? [],
+      endCursor: data.end ?? null,
+      hasMore: (data.chunk?.length ?? 0) >= limit,
+    }
+
+    return result
   } catch (err) {
     console.error("[getRoomMessages] Network error:", err);
     return { messages: [], endCursor: null, hasMore: false };

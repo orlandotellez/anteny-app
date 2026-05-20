@@ -1,4 +1,4 @@
-import { ENV } from "../../shared/constants/env";
+import { ENV } from "@/src/shared/constants/env";
 
 export const searchUsers = async (searchTerm: string, token: string) => {
   try {

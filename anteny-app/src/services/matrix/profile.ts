@@ -1,5 +1,5 @@
-import { ENV } from "../../shared/constants/env";
-import { IUserProfile } from "../../shared/types/user";
+import { ENV } from "@/src/shared/constants/env";
+import { IUserProfile } from "@/src/shared/types/user";
 
 export const getProfile = async (userId: string, token: string) => {
   try {
