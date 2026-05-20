@@ -16,7 +16,7 @@ import { Conversation } from "@/src/features/[chatId]/components/Conversation";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useChats } from "@/src/features/chats/context/ChatContext";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
-import { RoomMember } from "@/src/shared/types/matrixRoom";
+import { MatrixEvent, MemberEventContent } from "@/src/shared/types/matrixEvent";
 import { useRoomMessages } from "@/src/hooks/useRoomMessages";
 import { Loading } from "@/src/shared/components/common/Loading";
 import { NotFound } from "@/src/shared/components/common/NotFound";
@@ -100,19 +100,30 @@ export default function ChatScreen() {
             isDirect: reloadedChat.isDirect,
           });
         } else {
-          const members = await getRoomMembers(chatId, session.access_token);
+          const memberEvents = await getRoomMembers(chatId, session.access_token);
           const currentUserId = session.user_id;
 
-          const otherMembers = members.filter(
-            (m: RoomMember) => m.user_id !== currentUserId
-          );
+          // Convertir eventos de miembros a objetos con user_id
+          const otherMembers = memberEvents
+            .filter((m: MatrixEvent) => {
+              const content = m.content as unknown as MemberEventContent | undefined;
+              const userId = m.state_key ?? m.sender;
+              return content?.membership === 'join' && userId !== currentUserId;
+            })
+            .map((m: MatrixEvent) => {
+              const content = m.content as unknown as MemberEventContent | undefined;
+              return {
+                user_id: m.state_key ?? m.sender,
+                display_name: content?.displayname ?? null,
+              };
+            });
 
           const isDirect = otherMembers.length === 1;
 
           setChatData({
             name: isDirect
               ? (otherMembers[0]?.display_name || otherMembers[0]?.user_id || "Chat")
-              : `Group (${members.length})`,
+              : `Group (${memberEvents.length})`,
             otherUser: isDirect ? {
               user_id: otherMembers[0].user_id,
               displayname: otherMembers[0].display_name || otherMembers[0].user_id,
