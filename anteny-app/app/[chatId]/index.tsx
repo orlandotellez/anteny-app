@@ -97,7 +97,7 @@ export default function ChatScreen() {
             isDirect: reloadedChat.isDirect,
           });
         } else {
-          const memberEvents = await getRoomMembers(chatId, session.access_token);
+          const memberEvents = await getRoomMembers({ roomId: chatId, token: session.access_token });
           const currentUserId = session.user_id;
 
           // Convertir eventos de miembros a objetos con user_id

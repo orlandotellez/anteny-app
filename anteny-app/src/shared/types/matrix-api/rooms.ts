@@ -1,7 +1,22 @@
-// Tipos para respuestas de la API de Rooms
-
 import { MatrixEvent } from "../matrixEvent";
 
+// Payloads
+export interface ICreateRoomPayload {
+  userId: string
+  token: string
+}
+
+export interface IGetInvitedRoomPayload {
+  token: string
+  since?: string
+}
+
+export interface IGetRoomPayload {
+  roomId: string
+  token: string
+}
+
+// Tipos para respuestas de la API de Rooms
 export interface CreateRoomResponse {
   room_id: string;
 }

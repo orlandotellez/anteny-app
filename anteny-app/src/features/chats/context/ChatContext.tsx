@@ -46,7 +46,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
       // Obtener salas unidas Y salas invitadas
       const [joinedRoomIds, invitedRooms] = await Promise.all([
         getJoinedRooms(session.access_token).catch(() => []),
-        getInvitedRooms(session.access_token).catch(() => []),
+        getInvitedRooms({ token: session.access_token }).catch(() => []),
       ]);
       console.log('[loadChats] joinedRoomIds:', joinedRoomIds);
       console.log('[loadChats] invitedRooms:', invitedRooms);
@@ -56,8 +56,8 @@ export function ChatProvider({ children }: ChatProviderProps) {
       const chatRooms: (ChatRoom | null)[] = await Promise.all(
         joinedRoomIds.map(async (roomId: string) => {
           try {
-            const memberEvents = await getRoomMembers(roomId, session.access_token!).catch(() => []);
-            const roomName = await getRoomName(roomId, session.access_token!).catch(() => null);
+            const memberEvents = await getRoomMembers({ roomId, token: session.access_token! }).catch(() => []);
+            const roomName = await getRoomName({ roomId, token: session.access_token! }).catch(() => null);
             const currentUserId = session.user_id;
 
             // Obtener el último mensaje de la sala
@@ -192,7 +192,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
       if (!session?.access_token) return;
 
       // Abandonar la sala en Matrix
-      await leaveRoom(roomId, session.access_token);
+      await leaveRoom({ roomId, token: session.access_token });
 
       // Actualizar el estado local
       setChats(prev => prev.filter(chat => chat.room_id !== roomId));
@@ -212,7 +212,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
       setChats(prev => prev.filter(chat => chat.room_id !== roomId));
 
       // Unirse a la sala (aceptar invitación)
-      await joinRoom(roomId, session.access_token);
+      await joinRoom({ roomId, token: session.access_token });
 
       // Recargar los chats
       await loadChats();
@@ -238,7 +238,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
       });
 
       // Rechazar la invitación en Matrix
-      await rejectInvite(roomId, session.access_token);
+      await rejectInvite({ roomId, token: session.access_token });
 
       console.log('[handleRejectInvite] Invite rejected successfully');
     } catch (error) {
@@ -272,7 +272,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
         if (!session?.access_token) return;
 
         // Solo verificar invitaciones, no recargar todo
-        const invitedRooms = await getInvitedRooms(session.access_token).catch(() => []);
+        const invitedRooms = await getInvitedRooms({ token: session.access_token }).catch(() => []);
 
         if (!isMounted) return;
 

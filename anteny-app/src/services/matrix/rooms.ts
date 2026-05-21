@@ -5,16 +5,16 @@ import {
   GetJoinedRoomsResponse,
   GetRoomMembersResponse,
   GetRoomNameResponse,
+  ICreateRoomPayload,
+  IGetInvitedRoomPayload,
+  IGetRoomPayload,
   InviteStateEvent,
   InviteStateRoomData,
   JoinRoomResponse,
 } from "@/src/shared/types/matrix-api";
 
 // Funciones del servicio
-export const createDirectChat = async (
-  userId: string,
-  token: string
-): Promise<string> => {
+export const createDirectChat = async ({ userId, token }: ICreateRoomPayload): Promise<string> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/createRoom`,
@@ -71,7 +71,7 @@ export const getJoinedRooms = async (token: string): Promise<string[]> => {
 };
 
 // esta función devuelve todas las salas donde hay invitación pero el usuario no ha aceptado
-export const getInvitedRooms = async (token: string, since?: string): Promise<InvitedRoom[]> => {
+export const getInvitedRooms = async ({ token, since }: IGetInvitedRoomPayload): Promise<InvitedRoom[]> => {
   try {
     const url = new URL(`${ENV.MATRIX_URL}/_matrix/client/v3/sync`);
 
@@ -141,7 +141,7 @@ export const getInvitedRooms = async (token: string, since?: string): Promise<In
   }
 };
 
-export const getRoomDetails = async (roomId: string, token: string): Promise<unknown> => {
+export const getRoomDetails = async ({ roomId, token }: IGetRoomPayload): Promise<unknown> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state`,
@@ -165,7 +165,7 @@ export const getRoomDetails = async (roomId: string, token: string): Promise<unk
   }
 };
 
-export const getRoomMembers = async (roomId: string, token: string) => {
+export const getRoomMembers = async ({ roomId, token }: IGetRoomPayload) => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/members`,
@@ -190,7 +190,7 @@ export const getRoomMembers = async (roomId: string, token: string) => {
   }
 };
 
-export const getRoomName = async (roomId: string, token: string): Promise<string | null> => {
+export const getRoomName = async ({ roomId, token }: IGetRoomPayload): Promise<string | null> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state/m.room.name`,
@@ -214,7 +214,7 @@ export const getRoomName = async (roomId: string, token: string): Promise<string
   }
 };
 
-export const isRoomDirect = async (roomId: string, token: string): Promise<boolean> => {
+export const isRoomDirect = async ({ roomId, token }: IGetRoomPayload): Promise<boolean> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state/m.room.direct`,
@@ -238,7 +238,7 @@ export const isRoomDirect = async (roomId: string, token: string): Promise<boole
   }
 };
 
-export const leaveRoom = async (roomId: string, token: string): Promise<boolean> => {
+export const leaveRoom = async ({ roomId, token }: IGetRoomPayload): Promise<boolean> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/leave`,
@@ -264,7 +264,7 @@ export const leaveRoom = async (roomId: string, token: string): Promise<boolean>
   }
 };
 
-export const joinRoom = async (roomId: string, token: string): Promise<string> => {
+export const joinRoom = async ({ roomId, token }: IGetRoomPayload): Promise<string> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/join`,
@@ -291,7 +291,7 @@ export const joinRoom = async (roomId: string, token: string): Promise<string> =
   }
 };
 
-export const rejectInvite = async (roomId: string, token: string): Promise<boolean> => {
+export const rejectInvite = async ({ roomId, token }: IGetRoomPayload): Promise<boolean> => {
   try {
     console.log("[rejectInvite] Rejecting invite for room:", roomId);
 

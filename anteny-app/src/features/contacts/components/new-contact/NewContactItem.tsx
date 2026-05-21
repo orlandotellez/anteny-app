@@ -9,12 +9,12 @@ import { getUsernameFromUserId } from "@/src/shared/utils/format";
 import { createDirectChat } from "@/src/services/matrix/rooms";
 
 interface NewContactItemProps {
-  user_id: string;
+  userId: string;
   displayname?: string;
   existingChatRoomId?: string;
 }
 
-export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: NewContactItemProps) => {
+export const NewContactItem = ({ userId, displayname, existingChatRoomId }: NewContactItemProps) => {
   const { session } = useAuth();
   const { loadChats } = useChats();
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +23,7 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
   const hasExistingChat = !!existingChatRoomId;
 
   // Si hay displayname usarlo, si no usar getUsernameFromUserId
-  const displayName = displayname || getUsernameFromUserId(user_id);
+  const displayName = displayname || getUsernameFromUserId(userId);
   const avatarInitial = displayName ? displayName[0].toUpperCase() : "?";
 
   const handlePress = async () => {
@@ -38,7 +38,7 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
     // Crear nuevo chat
     setIsLoading(true);
     try {
-      const room_id = await createDirectChat(user_id, session.access_token);
+      const room_id = await createDirectChat({ userId, token: session.access_token });
 
       // Recargar los chats para que aparezcan en la lista
       await loadChats();
@@ -57,7 +57,7 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
     router.push({
       pathname: "/contacts/profile",
       params: {
-        userId: user_id,
+        userId: userId,
         displayName: displayname,
         hasChat: hasExistingChat ? "true" : "false",
         chatId: existingChatRoomId || "",
@@ -76,7 +76,7 @@ export const NewContactItem = ({ user_id, displayname, existingChatRoomId }: New
       <View style={{ flex: 1, marginLeft: 12 }}>
         <Text style={styles.name}>{displayName}</Text>
         <Text style={styles.status}>
-          {user_id}
+          {userId}
         </Text>
       </View>
 

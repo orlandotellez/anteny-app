@@ -67,7 +67,7 @@ export default function NewContactScreen() {
             const existingChat = findChatWithUser(item.user_id);
             return (
               <NewContactItem
-                user_id={item.user_id}
+                userId={item.user_id}
                 displayname={item.displayname}
                 existingChatRoomId={existingChat?.room_id}
               />

@@ -38,7 +38,7 @@ export default function ContactProfileScreen() {
     if (!session?.access_token || !userId) return;
 
     try {
-      const room_id = await createDirectChat(userId, session.access_token);
+      const room_id = await createDirectChat({ userId, token: session.access_token });
 
       await loadChats();
 
