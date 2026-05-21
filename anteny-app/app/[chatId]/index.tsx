@@ -225,7 +225,6 @@ export default function ChatScreen() {
           {/* Sticky Date Header */}
           <View style={styles.stickyDateContainer}>
             <View style={styles.stickyDateBadge}>
-              <Text style={styles.stickyDateText}>{visibleDate}</Text>
             </View>
           </View>
 

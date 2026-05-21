@@ -1,11 +1,11 @@
 import { THEME } from "@/src/shared/lib/theme"
 import { Image, StyleSheet, Text, View, ActivityIndicator, Pressable, TextInput, Modal } from "react-native"
-import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { Message } from "@/src/shared/types/matrixMessage";
 import { formatDate } from "@/src/shared/utils/time";
 import { useState } from "react";
 import { getUsernameFromUserId } from "@/src/shared/utils/format";
 import { OptionsModal } from "../modals/OptionsModal";
+import { EditModal } from "../modals/EditModal";
 
 interface ConversationProps {
   messages: Message[];
@@ -73,7 +73,7 @@ export const Conversation = ({
 
   const handleSaveEdit = async () => {
     if (editingMessage && editText.trim()) {
-      const result = await onEditMessage?.(editingMessage.id, editText.trim());
+      const result = onEditMessage?.(editingMessage.id, editText.trim());
       if (result) {
         setEditingMessage(null);
         setEditText("");
@@ -198,48 +198,16 @@ export const Conversation = ({
         handleDelete={handleDelete}
         isSelectedMine={isSelectedMine}
       />
+
       {/* Edit Modal */}
-      <Modal
-        visible={editingMessage !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setEditingMessage(null)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Message</Text>
-            <TextInput
-              style={styles.editInput}
-              value={editText}
-              onChangeText={setEditText}
-              multiline
-              autoFocus
-              blurOnSubmit={false}
-              returnKeyType="done"
-            />
-            <View style={styles.modalButtons}>
-              <Pressable
-                style={styles.cancelButton}
-                onPress={() => {
-                  setEditingMessage(null);
-                  setEditText("");
-                }}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.saveButton, !editText.trim() && styles.saveButtonDisabled]}
-                onPress={handleSaveEdit}
-                disabled={!editText.trim() || isEditing}
-              >
-                <Text style={styles.saveButtonText}>
-                  {isEditing ? "Saving..." : "Save"}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <EditModal
+        editingMessage={editingMessage}
+        setEditingMessage={(value) => setEditingMessage(value)}
+        setEditText={setEditText}
+        editText={editText}
+        handleSaveEdit={handleSaveEdit}
+        isEditing={isEditing}
+      />
     </>
   );
 }
@@ -333,68 +301,6 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 8,
     marginBottom: 6,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#2a2a2a",
-    borderRadius: 12,
-    padding: 20,
-    width: "85%",
-    maxWidth: 400,
-  },
-  modalTitle: {
-    color: "#e2e2e2",
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 16,
-  },
-  editInput: {
-    backgroundColor: "#1b1b1b",
-    borderRadius: 8,
-    padding: 12,
-    color: "#e2e2e2",
-    fontSize: 16,
-    minHeight: 100,
-    textAlignVertical: "top",
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 16,
-    gap: 12,
-  },
-  cancelButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  cancelButtonText: {
-    color: "#888888",
-    fontSize: 16,
-  },
-  saveButton: {
-    backgroundColor: THEME.colors.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  saveButtonDisabled: {
-    backgroundColor: "#555555",
-  },
-  saveButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "600",
   },
   // Reply Preview in Message
   replyPreviewContainer: {
