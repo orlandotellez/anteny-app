@@ -1,16 +1,9 @@
 import { ENV } from "@/src/shared/constants/env";
-import { LastRoomMessage, MatrixMessagesApiResponse, MatrixSendMessageApiResponse, RoomMessagesResult } from "@/src/shared/types/matrix-api";
-import { MSG_TYPE, MatrixMessageContent } from "@/src/shared/types/matrixMessage";
-
-// Tipos de dominio
-interface ReplyTo {
-  eventId: string;
-  body: string;
-  sender: string;
-}
+import { LastRoomMessage, ILastRoomMessagePayload, MatrixMessagesApiResponse, MatrixSendMessageApiResponse, RoomMessagesResult, ISendRoomMessagePayload, IEditMessagePayload, IRedactMessagePayload, IGetRoomMessagePayload } from "@/src/shared/types/matrix-api";
+import { MatrixMessageContent } from "@/src/shared/types/matrixMessage";
 
 // Obtiene el último mensaje de una sala (para mostrar en la lista de chats)
-export const getLastRoomMessage = async (roomId: string, token: string): Promise<LastRoomMessage | null> => {
+export const getLastRoomMessage = async ({ roomId, token }: ILastRoomMessagePayload): Promise<LastRoomMessage | null> => {
   try {
     const url = new URL(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/messages`
@@ -60,13 +53,7 @@ export const getLastRoomMessage = async (roomId: string, token: string): Promise
   }
 };
 
-export const sendRoomMessage = async (
-  roomId: string,
-  token: string,
-  body: string,
-  msgtype: MSG_TYPE = "m.text",
-  replyTo?: ReplyTo | null
-): Promise<string | null> => {
+export const sendRoomMessage = async ({ roomId, token, body, msgtype = "m.text", replyTo }: ISendRoomMessagePayload): Promise<string | null> => {
   try {
     const txnId = `m${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -111,13 +98,7 @@ export const sendRoomMessage = async (
   }
 };
 
-export const editMessage = async (
-  roomId: string,
-  eventId: string,
-  token: string,
-  newBody: string,
-  msgtype: MSG_TYPE = "m.text"
-): Promise<string | null> => {
+export const editMessage = async ({ roomId, eventId, token, newBody, msgtype = "m.text" }: IEditMessagePayload): Promise<string | null> => {
   try {
     const txnId = `m${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -161,12 +142,7 @@ export const editMessage = async (
   }
 };
 
-export const redactMessage = async (
-  roomId: string,
-  eventId: string,
-  token: string,
-  reason?: string
-): Promise<boolean> => {
+export const redactMessage = async ({ roomId, eventId, token, reason }: IRedactMessagePayload): Promise<boolean> => {
   try {
     // Synapse implements POST endpoint (unspecced but supported)
     const res = await fetch(
@@ -194,13 +170,7 @@ export const redactMessage = async (
   }
 };
 
-export const getRoomMessages = async (
-  roomId: string,
-  token: string,
-  direction: "b" | "f" = "b",
-  from?: string,
-  limit: number = 20
-): Promise<RoomMessagesResult> => {
+export const getRoomMessages = async ({ roomId, token, direction, from, limit = 20 }: IGetRoomMessagePayload): Promise<RoomMessagesResult> => {
   try {
     const url = new URL(
       `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/messages`

@@ -105,13 +105,13 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
     setIsLoading(true);
 
     try {
-      const result = await getRoomMessages(
-        roomId,
-        session.access_token,
-        'b',
-        undefined,
-        initialLimit
-      );
+      const result = await getRoomMessages({
+        roomId: roomId,
+        token: session.access_token,
+        direction: 'b',
+        from: undefined,
+        limit: initialLimit
+      });
 
       const msgs = result.messages
         .filter(e => e.type === 'm.room.message')
@@ -141,13 +141,13 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
     setIsLoading(true);
 
     try {
-      const result = await getRoomMessages(
-        roomId,
-        session.access_token,
-        'b',
-        cursorRef.current || undefined,
-        initialLimit
-      );
+      const result = await getRoomMessages({
+        roomId: roomId,
+        token: session.access_token,
+        direction: 'b',
+        from: cursorRef.current || undefined,
+        limit: initialLimit
+      });
 
       const newMessages = result.messages
         .filter(e => e.type === 'm.room.message')
@@ -179,7 +179,13 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
     setIsSending(true);
 
     try {
-      const eventId = await sendRoomMessage(roomId, session.access_token, body.trim(), "m.text", replyTo || undefined);
+      const eventId = await sendRoomMessage({
+        roomId: roomId,
+        token: session.access_token,
+        body: body.trim(),
+        msgtype: "m.text",
+        replyTo: replyTo || undefined
+      });
 
       if (eventId) {
         const tempMessage: Message = {
@@ -218,7 +224,7 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
     setIsDeleting(true);
 
     try {
-      const success = await redactMessage(roomId, eventId, session.access_token);
+      const success = await redactMessage({ roomId: roomId, eventId: eventId, token: session.access_token });
 
       if (success) {
         // marcar como eliminado y reemplazar contenido con Message deleted
@@ -258,7 +264,13 @@ export const useRoomMessages = (options: UseRoomMessagesOptions): UseRoomMessage
 
     try {
       console.log("[useRoomMessages] Calling editMessageApi...");
-      const newEventId = await editMessageApi(roomId, eventId, session.access_token, newBody.trim());
+      const newEventId = await editMessageApi({
+        roomId: roomId,
+        eventId: eventId,
+        token: session.access_token,
+        newBody: newBody.trim(),
+        msgtype: "m.text"
+      });
       console.log("[useRoomMessages] editMessageApi result:", newEventId);
 
       if (newEventId) {

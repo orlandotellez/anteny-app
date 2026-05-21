@@ -61,7 +61,10 @@ export function ChatProvider({ children }: ChatProviderProps) {
             const currentUserId = session.user_id;
 
             // Obtener el último mensaje de la sala
-            const lastMessageData = await getLastRoomMessage(roomId, session.access_token!).catch(() => null);
+            const lastMessageData = await getLastRoomMessage({
+              roomId: roomId,
+              token: session.access_token!
+            }).catch(() => null);
 
             // Convertir eventos de miembros a RoomMember
             const members: RoomMember[] = memberEvents
