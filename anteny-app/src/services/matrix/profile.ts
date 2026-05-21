@@ -1,20 +1,12 @@
 import { ENV } from "@/src/shared/constants/env";
-import { ProfileResponse, UploadAvatarResponse } from "@/src/shared/types/matrix-api";
-
-// ============================================
-// Tipos de dominio
-// ============================================
+import { IGetProfilePayload, ISetAvatar, ISetDisplayNamePayload, IUploadAvatarPayload, ProfileResponse, UploadAvatarResponse } from "@/src/shared/types/matrix-api";
 
 export interface UserProfileData {
   displayName: string;
   avatarUrl: string;
 }
 
-// ============================================
-// Funciones del servicio
-// ============================================
-
-export const getProfile = async (userId: string, token: string): Promise<UserProfileData> => {
+export const getProfile = async ({ userId, token }: IGetProfilePayload): Promise<UserProfileData> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/profile/${encodeURIComponent(userId)}`,
@@ -43,11 +35,7 @@ export const getProfile = async (userId: string, token: string): Promise<UserPro
   }
 };
 
-export const setDisplayName = async (
-  userId: string,
-  token: string,
-  displayName: string
-): Promise<void> => {
+export const setDisplayName = async ({ userId, token, displayName }: ISetDisplayNamePayload): Promise<void> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/profile/${encodeURIComponent(userId)}/displayname`,
@@ -73,10 +61,7 @@ export const setDisplayName = async (
   }
 };
 
-export const uploadAvatar = async (
-  file: Blob,
-  token: string
-): Promise<string> => {
+export const uploadAvatar = async ({ file, token }: IUploadAvatarPayload): Promise<string> => {
   try {
     const res = await fetch(`${ENV.MATRIX_URL}/_matrix/media/v3/upload`, {
       method: "POST",
@@ -100,11 +85,7 @@ export const uploadAvatar = async (
   }
 };
 
-export const setAvatar = async (
-  userId: string,
-  token: string,
-  avatarUrl: string
-): Promise<void> => {
+export const setAvatar = async ({ userId, token, avatarUrl }: ISetAvatar): Promise<void> => {
   try {
     const res = await fetch(
       `${ENV.MATRIX_URL}/_matrix/client/v3/profile/${encodeURIComponent(userId)}/avatar_url`,

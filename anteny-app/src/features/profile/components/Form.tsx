@@ -20,7 +20,7 @@ export const Form = ({ onDisplayNameUpdate }: FormProps) => {
     }
 
     // Actualizar en Matrix
-    await setDisplayName(session.user_id, session.access_token, newDisplayName);
+    await setDisplayName({ userId: session.user_id, token: session.access_token, displayName: newDisplayName });
 
     // Actualizar localmente
     if (onDisplayNameUpdate) {

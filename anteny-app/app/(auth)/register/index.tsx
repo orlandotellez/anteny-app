@@ -67,7 +67,7 @@ export default function RegisterScreen() {
       await saveSecureStore(session);
 
       // Actualizar display name en Matrix
-      await setDisplayName(session.user_id, session.access_token, form.displayName);
+      await setDisplayName({ userId: session.user_id, token: session.access_token, displayName: form.displayName });
 
       // Guardar perfil en storage
       await setProfileStorage({

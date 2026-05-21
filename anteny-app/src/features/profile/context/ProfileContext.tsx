@@ -59,7 +59,7 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
       const session = await authStorage.getSession();
 
       if (session?.access_token && session?.user_id) {
-        const matrixProfile = await getProfile(session.user_id, session.access_token);
+        const matrixProfile = await getProfile({ userId: session.user_id, token: session.access_token });
 
         const profileData: IUserProfile = {
           id: session.user_id,
@@ -101,7 +101,7 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
   // Cargar perfil desde Matrix API y guardar en storage
   const fetchProfileFromMatrix = async (userId: string, token: string) => {
     try {
-      const matrixProfile = await getProfile(userId, token);
+      const matrixProfile = await getProfile({ userId, token });
 
       const profileData: IUserProfile = {
         id: userId,
