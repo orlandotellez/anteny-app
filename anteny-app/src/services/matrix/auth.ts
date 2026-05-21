@@ -1,5 +1,5 @@
 import { ENV } from "@/src/shared/constants/env";
-import { ILoginPayload, IRegisterPayload } from "@/src/shared/types/auth";
+import { ILoginPayload, IRegisterPayload } from "@/src/shared/types/matrix-api/auth";
 import { MatrixSession } from "@/src/shared/types/matrixSession";
 
 export const registerUser = async ({ username, password }: IRegisterPayload): Promise<MatrixSession> => {
