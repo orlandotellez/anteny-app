@@ -5,6 +5,7 @@ import { Message } from "@/src/shared/types/matrixMessage";
 import { formatDate } from "@/src/shared/utils/time";
 import { useState } from "react";
 import { getUsernameFromUserId } from "@/src/shared/utils/format";
+import { OptionsModal } from "../modals/OptionsModal";
 
 interface ConversationProps {
   messages: Message[];
@@ -189,35 +190,14 @@ export const Conversation = ({
       ))}
 
       {/* Options Menu Modal */}
-      <Modal transparent visible={showMenu} animationType="fade" onRequestClose={() => setShowMenu(false)}>
-        <Pressable style={styles.modalBackdrop} onPressOut={() => setShowMenu(false)}>
-          <View style={styles.menuBox}>
-            <Pressable style={styles.menuButton} onPress={handleReply}>
-              <MaterialCommunityIcons name="reply-outline" size={24} color={THEME.colors.primary} />
-              <Text style={styles.menuText}>Responder</Text>
-            </Pressable>
-
-            {isSelectedMine && (
-              <>
-                <Pressable style={styles.menuButton} onPress={handleEdit}>
-                  <MaterialCommunityIcons name="pencil-outline" size={24} color={THEME.colors.primary} />
-                  <Text style={styles.menuText}>Editar</Text>
-                </Pressable>
-
-                <Pressable style={styles.menuButton} onPress={handleDelete}>
-                  <Feather name="trash-2" size={24} color={THEME.colors.danger} />
-                  <Text style={[styles.menuText, { color: THEME.colors.danger }]}>Eliminar</Text>
-                </Pressable>
-              </>
-            )}
-
-            <Pressable style={styles.menuCancel} onPress={() => setShowMenu(false)}>
-              <Text style={styles.menuCancelText}>Cancelar</Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
-
+      <OptionsModal
+        showMenu={showMenu}
+        setShowMenu={setShowMenu}
+        handleReply={handleReply}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+        isSelectedMine={isSelectedMine}
+      />
       {/* Edit Modal */}
       <Modal
         visible={editingMessage !== null}
@@ -359,33 +339,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "center",
     alignItems: "center",
-  },
-  menuBox: {
-    backgroundColor: THEME.colors.secondary,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 40,
-    minWidth: 200,
-  },
-  menuButton: {
-    paddingVertical: 12,
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  menuText: {
-    fontSize: 16,
-    color: THEME.colors.primary,
-  },
-  menuCancel: {
-    marginTop: 8,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  menuCancelText: {
-    fontSize: 15,
-    color: "#888888",
   },
   modalOverlay: {
     flex: 1,
