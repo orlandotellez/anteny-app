@@ -17,6 +17,7 @@ import { useChats } from "@/src/features/chats/context/ChatContext";
 import { router } from "expo-router";
 import { ChatRoom } from "@/src/shared/types/matrixRoom";
 import { formatRelativeTime } from "@/src/shared/utils/format";
+import { Filters } from "@/src/features/chats/components/Filters";
 
 type FilterType = "all" | "direct" | "groups" | "invites";
 
@@ -144,40 +145,11 @@ export default function ChatScreen() {
       />
 
       {/* FILTROS */}
-      <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[styles.filterBtn, activeFilter === "all" && styles.filterBtnActive]}
-          onPress={() => setActiveFilter("all")}
-        >
-          <Text style={[styles.filterText, activeFilter === "all" && styles.filterTextActive]}>
-            All
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterBtn, activeFilter === "direct" && styles.filterBtnActive]}
-          onPress={() => setActiveFilter("direct")}
-        >
-          <Text style={[styles.filterText, activeFilter === "direct" && styles.filterTextActive]}>
-            Direct
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterBtn, activeFilter === "groups" && styles.filterBtnActive]}
-          onPress={() => setActiveFilter("groups")}
-        >
-          <Text style={[styles.filterText, activeFilter === "groups" && styles.filterTextActive]}>
-            Groups
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterBtn, activeFilter === "invites" && styles.filterBtnActive]}
-          onPress={() => setActiveFilter("invites")}
-        >
-          <Text style={[styles.filterText, activeFilter === "invites" && styles.filterTextActive]}>
-            Invites ({inviteCount})
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <Filters
+        activeFilter={activeFilter}
+        setActiveFilter={() => setActiveFilter}
+        inviteCount={inviteCount}
+      />
 
       {/* LIST */}
       {isLoading ? (
@@ -227,28 +199,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: THEME.colors.background,
-  },
-  filterContainer: {
-    flexDirection: "row",
-    padding: 12,
-    gap: 8,
-  },
-  filterBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: THEME.colors.secondary,
-  },
-  filterBtnActive: {
-    backgroundColor: THEME.colors.primary,
-  },
-  filterText: {
-    color: THEME.colors.text_opacity,
-    fontSize: 14,
-  },
-  filterTextActive: {
-    color: "#000",
-    fontWeight: "600",
   },
   loadingContainer: {
     flex: 1,
