@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from "react-native"
+import { Text, View } from "react-native"
+import { styles } from "./Footer.styles"
 
 export const Footer = () => {
   return (
@@ -11,15 +12,3 @@ export const Footer = () => {
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  footer: {
-    marginTop: 40,
-    alignItems: "center",
-  },
-  footerText: {
-    fontSize: 11,
-    color: "#777",
-    textAlign: "center",
-  },
-})
