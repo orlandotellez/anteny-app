@@ -1,11 +1,9 @@
 import React from "react";
 import {
   View,
-  StyleSheet,
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { THEME } from "@/src/shared/lib/theme";
 import { ActionButton } from "@/src/features/profile/components/ActionButton";
 import { Header } from "@/src/features/profile/components/Header";
 import { Avatar } from "@/src/features/profile/components/Avatar";
@@ -17,6 +15,7 @@ import { ActionItem } from "@/src/shared/types/contacts";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { useProfile } from "@/src/features/profile/context/ProfileContext";
 import { getUsernameFromUserId } from "@/src/shared/utils/format";
+import { styles } from "@/src/styles/tabs/profile.styles";
 
 const actions: ActionItem[] = [
   { id: "a", type: "action", action: () => { }, title: "My Code", icon: "qr-code" },
@@ -80,20 +79,3 @@ export default function ProfileScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: THEME.colors.background,
-  },
-  content: {
-    padding: 20,
-    paddingTop: 30,
-    paddingBottom: 120,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 20,
-  },
-});

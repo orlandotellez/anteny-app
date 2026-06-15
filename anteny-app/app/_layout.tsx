@@ -7,7 +7,7 @@ import { ProfileProvider } from '@/src/features/profile/context/ProfileContext';
 import { ChatProvider } from '@/src/features/chats/context/ChatContext';
 import { AuthGuard } from '@/src/guards/AuthGuard';
 
-type RootRoutes = "(tabs)" | "[chatId]" | "(auth)" | "contacts/profile";
+type RootRoutes = "(tabs)" | "[chatId]" | "(auth)" | "contacts/profile/index";
 
 interface StackConfig {
   name: RootRoutes;
@@ -30,11 +30,10 @@ const ROOT_STACK: StackConfig[] = [
     headerShown: false
   },
   {
-    name: "contacts/profile",
+    name: "contacts/profile/index",
     headerShown: false
   },
 ];
-
 
 export default function RootLayout() {
   return (

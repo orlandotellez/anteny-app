@@ -2,10 +2,8 @@ import React, { useState } from "react";
 import {
   View,
   FlatList,
-  StyleSheet,
   Text,
 } from "react-native";
-import { THEME } from "@/src/shared/lib/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/src/features/contacts/components/new-contact/Header";
 import { SearchNewContact } from "@/src/features/contacts/components/new-contact/SearchNewContact";
@@ -13,6 +11,7 @@ import { NewContactItem } from "@/src/features/contacts/components/new-contact/N
 import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { useChats } from "@/src/features/chats/context/ChatContext";
 import { searchUsers } from "@/src/services/matrix/users";
+import { styles } from "@/src/styles/contacts/new-contact.styles";
 
 interface UserResult {
   user_id: string;
@@ -86,21 +85,3 @@ export default function NewContactScreen() {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: THEME.colors.background,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 40,
-  },
-  emptyText: {
-    color: "#888",
-    fontSize: 16,
-    textAlign: "center",
-  },
-});
