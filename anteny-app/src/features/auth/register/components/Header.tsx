@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 110,
     height: 110,
-    borderRadius: 55,
+    borderRadius: 5,
     backgroundColor: THEME.colors.primary_opacity,
   },
   title: {

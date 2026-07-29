@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: THEME.colors.primary_opacity,
     padding: 16,
-    borderRadius: 20,
+    borderRadius: 5,
   },
   privacyTitle: {
     color: THEME.colors.primary,

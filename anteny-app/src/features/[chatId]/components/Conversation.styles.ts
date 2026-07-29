@@ -25,13 +25,13 @@ export const styles = StyleSheet.create({
   dateContainer: {
     alignItems: "center",
     marginVertical: 12,
-    borderRadius: 12,
+    borderRadius: 5,
   },
   dateBadge: {
     backgroundColor: "#1b1b1b",
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 5,
   },
   date: {
     color: THEME.colors.text_opacity,
@@ -49,14 +49,14 @@ export const styles = StyleSheet.create({
   receivedBubble: {
     backgroundColor: "#2a2a2a",
     padding: 10,
-    borderRadius: 12,
+    borderRadius: 5,
     width: "100%",
     maxWidth: 150
   },
   sentBubble: {
     backgroundColor: THEME.colors.secondary,
     padding: 10,
-    borderRadius: 12,
+    borderRadius: 5,
     width: "100%",
     maxWidth: 150
 
@@ -88,7 +88,7 @@ export const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: 150,
-    borderRadius: 8,
+    borderRadius: 5,
     marginBottom: 6,
   },
   // Reply Preview in Message
@@ -100,7 +100,7 @@ export const styles = StyleSheet.create({
   replyLine: {
     width: 3,
     backgroundColor: THEME.colors.primary,
-    borderRadius: 2,
+    borderRadius: 5,
   },
   replyContent: {
     flex: 1,

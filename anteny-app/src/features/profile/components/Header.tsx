@@ -42,6 +42,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   iconBtn: {
-    borderRadius: 20,
+    borderRadius: 5,
   },
 })

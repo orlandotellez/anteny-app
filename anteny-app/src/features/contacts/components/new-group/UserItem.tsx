@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     width: 45,
     height: 45,
-    borderRadius: 22,
+    borderRadius: 5,
     backgroundColor: THEME.colors.primary,
     justifyContent: "center",
     alignItems: "center",
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   selectionIndicator: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: 5,
     borderWidth: 2,
     borderColor: "#444",
   },

@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: "#2a2a2a",
-    borderRadius: 12,
+    borderRadius: 5,
     padding: 20,
     width: "85%",
     maxWidth: 400,
@@ -29,7 +29,7 @@ export const styles = StyleSheet.create({
   },
   editInput: {
     backgroundColor: "#1b1b1b",
-    borderRadius: 8,
+    borderRadius: 5,
     padding: 12,
     color: "#e2e2e2",
     fontSize: 16,
@@ -54,7 +54,7 @@ export const styles = StyleSheet.create({
     backgroundColor: THEME.colors.primary,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 5,
   },
   saveButtonDisabled: {
     backgroundColor: "#555555",

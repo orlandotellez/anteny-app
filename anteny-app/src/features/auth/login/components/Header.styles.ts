@@ -15,7 +15,7 @@ export const styles = StyleSheet.create({
     position: "absolute",
     width: 120,
     height: 120,
-    borderRadius: 60,
+    borderRadius: 5,
     backgroundColor: THEME.colors.primary_opacity,
   },
   title: {

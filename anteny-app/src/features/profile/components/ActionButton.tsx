@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: THEME.colors.secondary,
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 5,
     flexDirection: "row",
     justifyContent: "center",
     gap: 8,

@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
     backgroundColor: "#1b1b1b",
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 5,
   },
   stickyDateText: {
     color: THEME.colors.text_opacity,

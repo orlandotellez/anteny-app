@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 14,
+    borderRadius: 5,
     margin: 14,
     backgroundColor: THEME.colors.secondary,
   },
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   },
   btnSearch: {
     padding: 10,
-    borderRadius: 12,
+    borderRadius: 5,
     backgroundColor: THEME.colors.primary,
   },
 })

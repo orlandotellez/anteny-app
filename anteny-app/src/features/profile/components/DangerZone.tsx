@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 30,
     padding: 16,
-    borderRadius: 20,
+    borderRadius: 5,
     backgroundColor: THEME.colors.danger_opacity,
     borderWidth: 1,
   },
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 14,
     paddingHorizontal: 12,
-    borderRadius: 12,
+    borderRadius: 5,
     backgroundColor: THEME.colors.danger_card,
   },
 

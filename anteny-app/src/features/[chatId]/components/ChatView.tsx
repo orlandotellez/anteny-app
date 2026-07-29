@@ -1,0 +1,236 @@
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import {
+  View,
+  ScrollView,
+} from "react-native";
+import { formatDate, formatTime } from "@/src/shared/utils/time";
+import { Header } from "@/src/features/[chatId]/components/Header";
+import { Input } from "@/src/features/[chatId]/components/Input";
+import { Conversation } from "@/src/features/[chatId]/components/Conversation";
+import { useChats } from "@/src/features/chats/context/ChatContext";
+import { useAuth } from "@/src/features/auth/context/AuthContext";
+import { MatrixEvent, MemberEventContent } from "@/src/shared/types/matrixEvent";
+import { useRoomMessages } from "@/src/hooks/useRoomMessages";
+import { Loading } from "@/src/shared/components/common/Loading";
+import { NotFound } from "@/src/shared/components/common/NotFound";
+import { getRoomMembers } from "@/src/services/matrix/rooms";
+import { IChatData } from "@/src/shared/types/chats";
+import { styles } from "@/src/styles/chat/index.styles";
+
+interface ChatViewProps {
+  chatId: string;
+  onProfilePress?: (chatId: string, chatData: IChatData) => void;
+}
+
+export function ChatView({ chatId, onProfilePress }: ChatViewProps) {
+  const { getChatById, loadChats } = useChats();
+  const { session } = useAuth();
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const [isLoadingChat, setIsLoadingChat] = useState(true);
+  const [chatData, setChatData] = useState<IChatData | null>(null);
+  const [replyingToMessage, setReplyingToMessage] = useState<any | null>(null);
+  const [visibleDate, setVisibleDate] = useState<string>("Today");
+
+  const {
+    messages,
+    isLoading: isLoadingMessages,
+    hasMore,
+    loadMore,
+    sendMessage,
+    deleteMessage,
+    editMessage,
+    isSending,
+    isDeleting,
+    isEditing,
+  } = useRoomMessages({
+    roomId: chatId || "",
+    initialLimit: 50,
+    enabled: !!chatId,
+  });
+
+  // Scroll to bottom when messages load
+  useEffect(() => {
+    if (messages.length > 0 && !isLoadingMessages) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+      }, 100);
+    }
+  }, [messages.length, isLoadingMessages]);
+
+  // Load chat metadata
+  useEffect(() => {
+    const loadChatData = async () => {
+      const existingChat = getChatById(chatId);
+
+      if (existingChat) {
+        setChatData({
+          name: existingChat.name || "Chat",
+          otherUser: existingChat.otherUser,
+          isDirect: existingChat.isDirect,
+        });
+        setIsLoadingChat(false);
+        return;
+      }
+
+      if (!session?.access_token) {
+        setIsLoadingChat(false);
+        return;
+      }
+
+      try {
+        setIsLoadingChat(true);
+        await loadChats();
+        const reloadedChat = getChatById(chatId);
+
+        if (reloadedChat) {
+          setChatData({
+            name: reloadedChat.name || "Chat",
+            otherUser: reloadedChat.otherUser,
+            isDirect: reloadedChat.isDirect,
+          });
+        } else {
+          const memberEvents = await getRoomMembers({ roomId: chatId, token: session.access_token });
+          const currentUserId = session.user_id;
+
+          const otherMembers = memberEvents
+            .filter((m: MatrixEvent) => {
+              const content = m.content as unknown as MemberEventContent | undefined;
+              const userId = m.state_key ?? m.sender;
+              return content?.membership === 'join' && userId !== currentUserId;
+            })
+            .map((m: MatrixEvent) => {
+              const content = m.content as unknown as MemberEventContent | undefined;
+              return {
+                user_id: m.state_key ?? m.sender,
+                display_name: content?.displayname ?? null,
+              };
+            });
+
+          const isDirect = otherMembers.length === 1;
+
+          setChatData({
+            name: isDirect
+              ? (otherMembers[0]?.display_name || otherMembers[0]?.user_id || "Chat")
+              : `Group (${memberEvents.length})`,
+            otherUser: isDirect ? {
+              user_id: otherMembers[0].user_id,
+              displayname: otherMembers[0].display_name || otherMembers[0].user_id,
+            } : undefined,
+            isDirect,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading chat data:", error);
+        setChatData({
+          name: "Chat",
+          isDirect: false,
+        });
+      } finally {
+        setIsLoadingChat(false);
+      }
+    };
+
+    if (chatId) {
+      loadChatData();
+    }
+  }, [chatId, session, getChatById, loadChats]);
+
+  const handleSendMessage = useCallback(async (body: string, replyTo?: { eventId: string; body: string; sender: string }) => {
+    if (!body.trim()) return false;
+    const success = await sendMessage(body, replyTo);
+    if (success) {
+      setReplyingToMessage(null);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+    return success;
+  }, [sendMessage]);
+
+  const handleCancelReply = useCallback(() => {
+    setReplyingToMessage(null);
+  }, []);
+
+  const handleScroll = useCallback((event: any) => {
+    const { contentOffset } = event.nativeEvent;
+    const isAtTop = contentOffset.y < 50;
+
+    if (!isLoadingMessages && hasMore && isAtTop) {
+      loadMore();
+    }
+
+    const scrollY = contentOffset.y;
+    const approximateVisibleIndex = Math.floor(scrollY / 60);
+
+    if (messages.length > 0 && approximateVisibleIndex >= 0) {
+      const visibleIndex = Math.min(approximateVisibleIndex, messages.length - 1);
+      const visibleMessage = messages[visibleIndex];
+      if (visibleMessage) {
+        const newDate = formatDate(visibleMessage.timestamp);
+        if (newDate !== visibleDate) {
+          setVisibleDate(newDate);
+        }
+      }
+    }
+  }, [isLoadingMessages, hasMore, loadMore, messages, visibleDate]);
+
+  const handleProfilePress = useCallback(() => {
+    if (onProfilePress && chatData) {
+      onProfilePress(chatId, chatData);
+    }
+  }, [onProfilePress, chatId, chatData]);
+
+  if (isLoadingChat) {
+    return <Loading text="Loading chats..." />;
+  }
+
+  if (!chatData) {
+    return <NotFound text="Chat not found" />;
+  }
+
+  return (
+    <View style={{ flex: 1 }}>
+      {/* HEADER */}
+      <Header
+        avatar={chatData.otherUser?.user_id || ""}
+        name={chatData.name}
+        isOnline={true}
+        status={chatData.isDirect ? "DM" : "Group"}
+        onProfilePress={handleProfilePress}
+      />
+
+      {/* CHAT */}
+      <View style={{ flex: 1 }}>
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.chatContainer}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          onScroll={handleScroll}
+          scrollEventThrottle={400}
+        >
+          <Conversation
+            messages={messages}
+            currentUserId={session?.user_id || ""}
+            formatTime={formatTime}
+            isLoadingMessages={isLoadingMessages}
+            onDeleteMessage={deleteMessage}
+            onEditMessage={editMessage}
+            onReplyMessage={setReplyingToMessage}
+            isDeleting={isDeleting}
+            isEditing={isEditing}
+          />
+        </ScrollView>
+      </View>
+
+      {/* INPUT */}
+      <Input
+        onSendMessage={handleSendMessage}
+        isSending={isSending}
+        replyingTo={replyingToMessage}
+        onCancelReply={handleCancelReply}
+      />
+    </View>
+  );
+}

@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
   groupInput: {
     backgroundColor: THEME.colors.secondary,
     padding: 14,
-    borderRadius: 12,
+    borderRadius: 5,
     color: "#fff",
   },
   searchSection: {
@@ -30,7 +30,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: THEME.colors.secondary,
     paddingHorizontal: 12,
-    borderRadius: 12,
+    borderRadius: 5,
   },
   searchInput: {
     flex: 1,
@@ -56,7 +56,7 @@ export const styles = StyleSheet.create({
   createButton: {
     backgroundColor: THEME.colors.primary,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 5,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",

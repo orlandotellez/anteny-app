@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
     left: -100,
     width: 220,
     height: 220,
-    borderRadius: 110,
+    borderRadius: 5,
     backgroundColor: THEME.colors.primary_opacity,
   },
   glowBottom: {
@@ -33,14 +33,14 @@ export const styles = StyleSheet.create({
     right: -120,
     width: 260,
     height: 260,
-    borderRadius: 130,
+    borderRadius: 5,
     backgroundColor: THEME.colors.primary_opacity,
   },
   toast: {
     backgroundColor: THEME.colors.primary,
     position: "absolute",
     bottom: 50,
-    paddingHorizontal: 20, paddingVertical: 14, borderRadius: 20,
+    paddingHorizontal: 20, paddingVertical: 14, borderRadius: 5,
     shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 5,
   },
   toastText: {

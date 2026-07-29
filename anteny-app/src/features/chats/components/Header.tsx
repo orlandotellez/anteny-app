@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     marginTop: 12,
     backgroundColor: "#1a1a1a",
-    borderRadius: 12,
+    borderRadius: 5,
     paddingHorizontal: 12,
   },
   searchInput: {

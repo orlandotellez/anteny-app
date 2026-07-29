@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { THEME } from "@/src/shared/lib/theme";
-import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Platform } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { useChats } from "@/src/features/chats/context/ChatContext";
@@ -16,9 +16,11 @@ interface NewContactItemProps {
 
 export const NewContactItem = ({ userId, displayname, existingChatRoomId }: NewContactItemProps) => {
   const { session } = useAuth();
-  const { loadChats } = useChats();
+  const { loadChats, setPendingChatId } = useChats();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+
+  const isWide = Platform.OS === 'web' && typeof window !== 'undefined' && window.innerWidth >= 768;
 
   const hasExistingChat = !!existingChatRoomId;
 
@@ -26,12 +28,20 @@ export const NewContactItem = ({ userId, displayname, existingChatRoomId }: NewC
   const displayName = displayname || getUsernameFromUserId(userId);
   const avatarInitial = displayName ? displayName[0].toUpperCase() : "?";
 
+  const goToChat = (chatId: string) => {
+    if (isWide) {
+      setPendingChatId(chatId);
+      router.replace('/(tabs)');
+    } else {
+      router.push(`/${chatId}`);
+    }
+  };
+
   const handlePress = async () => {
     if (!session?.access_token) return;
 
     if (hasExistingChat) {
-      // Ir al chat existente
-      router.push(`/${existingChatRoomId}`);
+      goToChat(existingChatRoomId!);
       return;
     }
 
@@ -43,8 +53,7 @@ export const NewContactItem = ({ userId, displayname, existingChatRoomId }: NewC
       // Recargar los chats para que aparezcan en la lista
       await loadChats();
 
-      // Redirigir al chat
-      router.push(`/${room_id}`);
+      goToChat(room_id);
     } catch (error) {
       console.error("Error creating chat:", error);
     } finally {
@@ -121,14 +130,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 5,
     backgroundColor: THEME.colors.secondary,
   },
 
   avatar: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 5,
     backgroundColor: "#333",
     justifyContent: "center",
     alignItems: "center",
@@ -148,7 +157,7 @@ const styles = StyleSheet.create({
 
   profileButton: {
     padding: 10,
-    borderRadius: 12,
+    borderRadius: 5,
     borderWidth: 1.5,
     borderColor: THEME.colors.primary,
     marginRight: 8,
@@ -160,7 +169,7 @@ const styles = StyleSheet.create({
   inviteButton: {
     paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 5,
     backgroundColor: THEME.colors.primary,
     minWidth: 100,
     alignItems: "center",

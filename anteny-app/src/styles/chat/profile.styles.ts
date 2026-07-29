@@ -30,7 +30,7 @@ export const styles = StyleSheet.create({
   avatar: {
     width: 120,
     height: 120,
-    borderRadius: 60,
+    borderRadius: 5,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -91,7 +91,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: "#00a884",
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 5,
     justifyContent: "center",
     alignItems: "center",
     gap: 10,
@@ -113,7 +113,7 @@ export const styles = StyleSheet.create({
   image: {
     width: 120,
     height: 120,
-    borderRadius: 8,
+    borderRadius: 5,
     marginRight: 10,
   },
 });

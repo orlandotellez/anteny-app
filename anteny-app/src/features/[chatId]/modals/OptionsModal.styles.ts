@@ -10,7 +10,7 @@ export const styles = StyleSheet.create({
   },
   menuBox: {
     backgroundColor: THEME.colors.secondary,
-    borderRadius: 10,
+    borderRadius: 5,
     paddingVertical: 10,
     paddingHorizontal: 40,
     minWidth: 200,

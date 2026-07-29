@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 140,
     height: 140,
-    borderRadius: 70,
+    borderRadius: 5,
   },
   cameraBtn: {
     position: "absolute",
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: THEME.colors.primary,
     padding: 10,
-    borderRadius: 20,
+    borderRadius: 5,
   },
   name: {
     color: THEME.colors.text_title,

@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: THEME.colors.secondary,
     padding: 14,
-    borderRadius: 16,
+    borderRadius: 5,
   },
   label: {
     fontSize: 10,

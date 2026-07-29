@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   filterBtn: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 20,
+    borderRadius: 5,
     backgroundColor: THEME.colors.secondary,
   },
   filterBtnActive: {

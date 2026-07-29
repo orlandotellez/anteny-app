@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   groupAvatar: {
     width: 110,
     height: 110,
-    borderRadius: 55,
+    borderRadius: 5,
     backgroundColor: THEME.colors.primary,
     justifyContent: "center",
     alignItems: "center",
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: THEME.colors.primary,
     padding: 6,
-    borderRadius: 20,
+    borderRadius: 5,
   },
   avatarLabel: {
     color: "#aaa",

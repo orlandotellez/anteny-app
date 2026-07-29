@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   actionIcon: {
     width: 56,
     height: 56,
-    borderRadius: 24,
+    borderRadius: 5,
     backgroundColor: "#1b1b1b",
     justifyContent: "center",
     alignItems: "center",

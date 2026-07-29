@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
   input: {
     flex: 1,
     backgroundColor: "#0e0e0e",
-    borderRadius: 10,
+    borderRadius: 5,
     paddingHorizontal: 16,
     padding: 12,
     color: "#e5e2e1",
@@ -29,7 +29,7 @@ export const styles = StyleSheet.create({
   button: {
     height: 56,
     backgroundColor: THEME.colors.primary,
-    borderRadius: 16,
+    borderRadius: 5,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",

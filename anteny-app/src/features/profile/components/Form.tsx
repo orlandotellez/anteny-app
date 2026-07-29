@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: "#1c1b1b",
     padding: 14,
-    borderRadius: 16,
+    borderRadius: 5,
   },
   label: {
     fontSize: 10,

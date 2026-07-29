@@ -15,7 +15,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: THEME.colors.background,
-    borderRadius: 30,
+    borderRadius: 5,
     paddingHorizontal: 12,
     paddingVertical: 10,
     gap: 10,
@@ -30,7 +30,7 @@ export const styles = StyleSheet.create({
   micButton: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 5,
     backgroundColor: THEME.colors.primary,
     alignItems: "center",
     justifyContent: "center",
@@ -53,7 +53,7 @@ export const styles = StyleSheet.create({
     width: 3,
     height: "100%",
     backgroundColor: THEME.colors.primary,
-    borderRadius: 2,
+    borderRadius: 5,
   },
   replyContent: {
     flex: 1,
