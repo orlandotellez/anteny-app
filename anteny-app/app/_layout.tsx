@@ -1,5 +1,5 @@
 import { Stack, useSegments } from 'expo-router';
-import { StatusBar, View } from 'react-native';
+import { StatusBar, View, Platform } from 'react-native';
 import { THEME } from '@/src/shared/lib/theme';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '@/src/features/auth/context/AuthContext';
@@ -8,6 +8,22 @@ import { ChatProvider } from '@/src/features/chats/context/ChatContext';
 import { AuthGuard } from '@/src/guards/AuthGuard';
 import { Sidebar } from '@/src/shared/components/navigation/Sidebar';
 import { useResponsive } from '@/src/shared/hooks/useResponsive';
+
+// Eliminar outline/focus ring de todos los inputs en web
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = `
+    input, textarea, select, [contenteditable] {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    input:focus, textarea:focus, select:focus, [contenteditable]:focus {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 type RootRoutes = "(tabs)" | "[chatId]" | "(auth)" | "contacts/profile/index";
 
