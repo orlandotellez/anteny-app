@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { THEME } from "@/src/shared/lib/theme"
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 
 interface FormRegisterProps {
   values: {
@@ -8,6 +9,7 @@ interface FormRegisterProps {
     username: string;
     email: string;
     password: string;
+    confirmPassword: string;
   };
   onChange: (field: string, value: string) => void;
   onSubmit: () => void;
@@ -22,6 +24,12 @@ export const FormRegister = ({
   loading = false,
   error
 }: FormRegisterProps) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const passwordsMatch = values.password === values.confirmPassword;
+  const showMatchError = values.confirmPassword.length > 0 && !passwordsMatch;
+
   return (
     <View style={styles.form}>
 
@@ -76,14 +84,74 @@ export const FormRegister = ({
       {/* Password */}
       <View style={styles.field}>
         <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="••••••••"
-          placeholderTextColor={THEME.colors.text_opacity}
-          secureTextEntry
-          value={values.password}
-          onChangeText={(text) => onChange("password", text)}
-        />
+        <View style={{ position: "relative" }}>
+          <TextInput
+            style={[styles.input, { paddingRight: 44 }]}
+            placeholder="••••••••"
+            placeholderTextColor={THEME.colors.text_opacity}
+            secureTextEntry={!showPassword}
+            value={values.password}
+            onChangeText={(text) => onChange("password", text)}
+          />
+          <TouchableOpacity
+            onPress={() => setShowPassword(!showPassword)}
+            style={{
+              position: "absolute",
+              right: 12,
+              top: 0,
+              bottom: 0,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons
+              name={showPassword ? "eye-off" : "eye"}
+              size={20}
+              color={THEME.colors.text_opacity}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Confirm Password */}
+      <View style={styles.field}>
+        <Text style={styles.label}>Confirm Password</Text>
+        <View style={{ position: "relative" }}>
+          <TextInput
+            style={[
+              styles.input,
+              { paddingRight: 44 },
+              showMatchError && { borderColor: THEME.colors.danger },
+            ]}
+            placeholder="••••••••"
+            placeholderTextColor={THEME.colors.text_opacity}
+            secureTextEntry={!showConfirmPassword}
+            value={values.confirmPassword}
+            onChangeText={(text) => onChange("confirmPassword", text)}
+          />
+          <TouchableOpacity
+            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+            style={{
+              position: "absolute",
+              right: 12,
+              top: 0,
+              bottom: 0,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons
+              name={showConfirmPassword ? "eye-off" : "eye"}
+              size={20}
+              color={THEME.colors.text_opacity}
+            />
+          </TouchableOpacity>
+        </View>
+        {showMatchError && (
+          <Text style={{ color: THEME.colors.danger, fontSize: 12, marginTop: 2 }}>
+            Las contraseñas no coinciden
+          </Text>
+        )}
       </View>
 
       {/* Button */}

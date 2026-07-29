@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native"
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { THEME } from "@/src/shared/lib/theme";
 import { styles } from "./FormLogin.styles";
 
@@ -21,6 +22,8 @@ export const FormLogin = ({
   loading = false,
   error
 }: FormLoginProps) => {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <>
       <View style={styles.form}>
@@ -52,14 +55,33 @@ export const FormLogin = ({
         {/* Password */}
         <View style={styles.field}>
           <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor={THEME.colors.text_opacity}
-            secureTextEntry
-            value={values.password}
-            onChangeText={(text) => onChange("password", text)}
-          />
+          <View style={{ position: "relative" }}>
+            <TextInput
+              style={[styles.input, { paddingRight: 44 }]}
+              placeholder="••••••••"
+              placeholderTextColor={THEME.colors.text_opacity}
+              secureTextEntry={!showPassword}
+              value={values.password}
+              onChangeText={(text) => onChange("password", text)}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: 12,
+                top: 0,
+                bottom: 0,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={20}
+                color={THEME.colors.text_opacity}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Button */}
