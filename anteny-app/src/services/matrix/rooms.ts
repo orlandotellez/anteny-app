@@ -265,30 +265,52 @@ export const leaveRoom = async ({ roomId, token }: IGetRoomPayload): Promise<boo
 };
 
 export const joinRoom = async ({ roomId, token }: IGetRoomPayload): Promise<string> => {
-  try {
-    const res = await fetch(
-      `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/join`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
+  const MAX_RETRIES = 3;
+  const BASE_DELAY = 1000;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetch(
+        `${ENV.MATRIX_URL}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/join`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({}),
+        }
+      );
+
+      if (res.status === 429) {
+        // Rate limited — esperar y reintentar
+        const retryAfter = parseInt(res.headers.get("Retry-After") || "1", 10);
+        const delay = Math.max(retryAfter * 1000, BASE_DELAY * Math.pow(2, attempt - 1));
+        console.warn(`[joinRoom] Rate limited, retry ${attempt}/${MAX_RETRIES} after ${delay}ms`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
       }
-    );
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || "Error uniéndose a la sala");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Error uniéndose a la sala");
+      }
+
+      const data: JoinRoomResponse = await res.json();
+      return data.room_id;
+    } catch (err) {
+      if (attempt === MAX_RETRIES) {
+        console.error("joinRoom error:", err);
+        throw err;
+      }
+      // Para otros errores, esperar antes de reintentar
+      const delay = BASE_DELAY * Math.pow(2, attempt - 1);
+      console.warn(`[joinRoom] Error, retry ${attempt}/${MAX_RETRIES} after ${delay}ms:`, err);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
-
-    const data: JoinRoomResponse = await res.json();
-    return data.room_id;
-  } catch (err) {
-    console.error("joinRoom error:", err);
-    throw err;
   }
+
+  throw new Error("joinRoom: max retries reached");
 };
 
 export const rejectInvite = async ({ roomId, token }: IGetRoomPayload): Promise<boolean> => {

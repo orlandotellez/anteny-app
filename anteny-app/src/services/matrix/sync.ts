@@ -1,5 +1,6 @@
 import { ProcessSyncResponse, SyncOptions, SyncResponse } from "@/src/shared/types/matrixSync";
 import { MatrixEvent } from "@/src/shared/types/matrixEvent";
+import { InvitedRoom } from "@/src/shared/types/matrixRoom";
 import { ENV } from "@/src/shared/constants/env";
 
 const DEFAULT_TIMEOUT = 30000;
@@ -57,7 +58,7 @@ export const matrixSync = async (options: SyncOptions): Promise<SyncResponse | n
 
 export const processSyncResponse = (syncData: SyncResponse, currentUserId: string): ProcessSyncResponse => {
   const newMessages = new Map<string, MatrixEvent[]>();
-  const newInvites: string[] = [];
+  const newInvites: InvitedRoom[] = [];
   const joinedRooms: string[] = [];
   const leftRooms: string[] = [];
   const redactions = new Map<string, string[]>();
@@ -103,8 +104,33 @@ export const processSyncResponse = (syncData: SyncResponse, currentUserId: strin
   }
 
   if (syncData.rooms?.invite) {
-    for (const roomId of Object.keys(syncData.rooms.invite)) {
-      newInvites.push(roomId);
+    for (const [roomId, roomData] of Object.entries(syncData.rooms.invite)) {
+      const events = roomData.invite_state?.events ?? [];
+
+      // Buscar el evento de invitación para obtener el sender (invitador)
+      const memberEvent = events.find(
+        (e: MatrixEvent) =>
+          e.type === "m.room.member" && (e.content as { membership?: string })?.membership === "invite"
+      );
+
+      const inviterUserId = memberEvent?.sender ?? null;
+
+      // Buscar el evento del invitador para obtener su displayname
+      const inviterMemberEvent = events.find(
+        (e: MatrixEvent) =>
+          e.type === "m.room.member" &&
+          (e.content as { membership?: string })?.membership === "join" &&
+          e.state_key === inviterUserId
+      );
+
+      const inviterName =
+        (inviterMemberEvent?.content as { displayname?: string })?.displayname ?? inviterUserId ?? null;
+
+      newInvites.push({
+        room_id: roomId,
+        inviter_user_id: inviterUserId ?? undefined,
+        inviter_name: inviterName ?? undefined,
+      });
     }
   }
 

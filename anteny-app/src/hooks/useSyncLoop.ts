@@ -2,12 +2,13 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { AppState } from 'react-native';
 import { matrixSync, processSyncResponse } from '@/src/services/matrix/sync';
 import { MatrixEvent } from '@/src/shared/types/matrixEvent';
+import { InvitedRoom } from '@/src/shared/types/matrixRoom';
 import { authStorage } from '../storage/auth-storage';
 
 // Long polling para Matrix /sync
 interface UseSyncLoopOptions {
   onMessages?: (roomId: string, messages: MatrixEvent[]) => void;
-  onInvite?: (roomId: string) => void;
+  onInvite?: (invite: InvitedRoom) => void;
   onJoin?: (roomId: string) => void;
   onLeave?: (roomId: string) => void;
   onRedaction?: (roomId: string, redactedEventIds: string[]) => void;
@@ -23,8 +24,8 @@ interface UseSyncLoopReturn {
   lastSyncTime: number | null;
 }
 
-const MAX_RETRIES = 5;
 const BASE_RETRY_DELAY = 1000;
+const MAX_RETRY_DELAY = 30000; // Máximo 30s entre reintentos
 const ACTIVE_POLL_TIMEOUT = 30000;
 const BACKGROUND_POLL_TIMEOUT = 5000;
 
@@ -77,12 +78,10 @@ export const useSyncLoop = (options: UseSyncLoopOptions = {}): UseSyncLoopReturn
         if (!syncData) {
           retryCountRef.current += 1;
 
-          if (retryCountRef.current >= MAX_RETRIES) {
-            console.error('[useSyncLoop] Max retries reached, stopping');
-            break;
-          }
-
-          const delay = BASE_RETRY_DELAY * Math.pow(2, retryCountRef.current - 1);
+          const delay = Math.min(
+            BASE_RETRY_DELAY * Math.pow(2, retryCountRef.current - 1),
+            MAX_RETRY_DELAY
+          );
           console.log(`[useSyncLoop] Retry ${retryCountRef.current} after ${delay}ms`);
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
@@ -118,7 +117,7 @@ export const useSyncLoop = (options: UseSyncLoopOptions = {}): UseSyncLoopReturn
 
         if (newInvites.length > 0) {
           console.log('[useSyncLoop] New invites:', newInvites);
-          newInvites.forEach(roomId => onInvite?.(roomId));
+          newInvites.forEach(invite => onInvite?.(invite));
         }
 
         if (joinedRooms.length > 0) {
@@ -147,12 +146,11 @@ export const useSyncLoop = (options: UseSyncLoopOptions = {}): UseSyncLoopReturn
 
         retryCountRef.current += 1;
 
-        if (retryCountRef.current >= MAX_RETRIES) {
-          console.error('[useSyncLoop] Max retries reached, stopping');
-          break;
-        }
-
-        const delay = BASE_RETRY_DELAY * Math.pow(2, retryCountRef.current - 1);
+        const delay = Math.min(
+          BASE_RETRY_DELAY * Math.pow(2, retryCountRef.current - 1),
+          MAX_RETRY_DELAY
+        );
+        console.log(`[useSyncLoop] Retry ${retryCountRef.current} after ${delay}ms`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }

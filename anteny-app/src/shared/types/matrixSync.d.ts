@@ -1,5 +1,5 @@
 import { MatrixEvent } from "./matrixEvent";
-import { InvitedRoomData, RoomData } from "./matrixRoom";
+import { InvitedRoomData, InvitedRoom, RoomData } from "./matrixRoom";
 
 export interface SyncResponse {
   next_batch: string;
@@ -16,7 +16,7 @@ export interface SyncResponse {
 
 export interface ProcessSyncResponse {
   newMessages: Map<string, MatrixEvent[]>;
-  newInvites: string[];
+  newInvites: InvitedRoom[];
   joinedRooms: string[];
   leftRooms: string[];
   redactions: Map<string, string[]>;
