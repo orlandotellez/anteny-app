@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
 import { getUsernameFromUserId } from '@/src/shared/utils/format';
-import { ChatRoom, RoomMember } from '@/src/shared/types/matrixRoom';
+import { ChatRoom, RoomMember, InvitedRoom } from '@/src/shared/types/matrixRoom';
 import { MatrixEvent, MemberEventContent } from '@/src/shared/types/matrixEvent';
 import { authStorage } from '@/src/storage/auth-storage';
 import { getInvitedRooms, getJoinedRooms, getRoomMembers, getRoomName, joinRoom, leaveRoom, rejectInvite } from '@/src/services/matrix/rooms';
 import { getLastRoomMessage } from '@/src/services/matrix/messages';
+import { useSyncLoop } from '@/src/hooks/useSyncLoop';
 
 interface ChatContextType {
   chats: ChatRoom[];
@@ -15,6 +15,8 @@ interface ChatContextType {
   removeChat: (roomId: string) => Promise<void>;
   acceptInvite: (roomId: string) => Promise<void>;
   rejectInvite: (roomId: string) => Promise<void>;
+  pendingChatId: string | null;
+  setPendingChatId: (roomId: string | null) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -29,6 +31,9 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
   // Track rejected invites to prevent them from being re-added
   const rejectedInvitesRef = useRef<Set<string>>(new Set());
+
+  // Pending chat to auto-select when navigating to chats tab (used by contacts -> chat)
+  const [pendingChatId, setPendingChatId] = useState<string | null>(null);
 
   const loadChats = useCallback(async () => {
     console.log('[loadChats] Starting...');
@@ -189,16 +194,20 @@ export function ChatProvider({ children }: ChatProviderProps) {
   const removeChat = useCallback(async (roomId: string) => {
     try {
       const session = await authStorage.getSession();
+
+      // Remover de la UI inmediatamente (incluso si el server falla)
+      setChats(prev => prev.filter(chat => chat.room_id !== roomId));
+
       if (!session?.access_token) return;
 
-      // Abandonar la sala en Matrix
-      await leaveRoom({ roomId, token: session.access_token });
-
-      // Actualizar el estado local
-      setChats(prev => prev.filter(chat => chat.room_id !== roomId));
+      // Best-effort: intentar abandonar la sala en el server
+      // Si el otro usuario ya eliminó el room, esto va a fallar (404),
+      // pero el chat ya se removió de la UI.
+      await leaveRoom({ roomId, token: session.access_token }).catch(() => {
+        console.warn(`[removeChat] Could not leave room ${roomId} on server, removed locally`);
+      });
     } catch (error) {
       console.error('Error removing chat:', error);
-      throw error;
     }
   }, []);
 
@@ -209,167 +218,88 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
       rejectedInvitesRef.current.delete(roomId);
 
+      // Remover la invitación de la UI inmediatamente
       setChats(prev => prev.filter(chat => chat.room_id !== roomId));
 
-      // Unirse a la sala (aceptar invitación)
+      // Unirse a la sala en Matrix
       await joinRoom({ roomId, token: session.access_token });
 
-      // Recargar los chats
-      await loadChats();
+      // NO llamamos a loadChats() porque puede haber race condition:
+      // el server a veces todavía reporta el room como invitado en getInvitedRooms()
+      // y loadChats lo volvería a agregar causando un loop.
+      // En su lugar, el caller (chats screen) navega al room y los datos
+      // se cargan al entrar. El próximo sync/poll refrescará la lista.
     } catch (error) {
       console.error('Error accepting invite:', error);
+      // Si falló, recargar para restaurar estado
+      await loadChats();
       throw error;
     }
   }, [loadChats]);
 
   const handleRejectInvite = useCallback(async (roomId: string) => {
-    try {
-      const session = await authStorage.getSession();
-      if (!session?.access_token) return;
+    const session = await authStorage.getSession();
 
-      rejectedInvitesRef.current.add(roomId);
+    // Marcar como rechazada ANTES de remover, para que no se vuelva a agregar
+    // aunque el server falle o el sync loop la traiga de vuelta
+    rejectedInvitesRef.current.add(roomId);
 
-      setChats(prev => {
-        console.log('[handleRejectInvite] Current chats:', prev.map(c => c.room_id));
-        console.log('[handleRejectInvite] Removing room:', roomId);
-        const filtered = prev.filter(chat => chat.room_id !== roomId);
-        console.log('[handleRejectInvite] After filter:', filtered.map(c => c.room_id));
-        return filtered;
-      });
+    // Remover de la UI inmediatamente (incluso si el server falla)
+    setChats(prev => {
+      console.log('[handleRejectInvite] Removing room:', roomId);
+      return prev.filter(chat => chat.room_id !== roomId);
+    });
 
-      // Rechazar la invitación en Matrix
-      await rejectInvite({ roomId, token: session.access_token });
+    if (!session?.access_token) return;
 
-      console.log('[handleRejectInvite] Invite rejected successfully');
-    } catch (error) {
-      console.error('Error rejecting invite:', error);
-      // Remove from rejected set on error so it can be retried
-      rejectedInvitesRef.current.delete(roomId);
-      // Reload chats on error to restore state
-      await loadChats();
-      throw error;
-    }
-  }, [loadChats]);
+    // Best-effort: intentar rechazar en el server
+    // Si la sala ya no existe (stale invite), el server devuelve error
+    // pero la invitación ya se eliminó de la UI y no se volverá a agregar
+    await rejectInvite({ roomId, token: session.access_token }).catch((err) => {
+      console.warn(`[handleRejectInvite] Server rejected failed for ${roomId}, removed locally:`, err);
+    });
+  }, []);
 
-  // Cargar chats al montar
+  // === SYNC LOOP ÚNICO: invitaciones en TIEMPO REAL vía Matrix /sync ===
+  // El sync loop hace long-polling (30s timeout) al endpoint /sync de Matrix.
+  // Cuando el server detecta una invitación nueva, responde al INSTANTE.
+  // Los datos de la invite (invitador, nombre) vienen DIRECTAMENTE del sync,
+  // SIN llamadas HTTP secundarias.
+  const handleInvite = useCallback((invite: InvitedRoom) => {
+    setChats(prev => {
+      // No agregar si ya existe o fue rechazada
+      if (prev.some(c => c.room_id === invite.room_id)) return prev;
+      if (rejectedInvitesRef.current.has(invite.room_id)) return prev;
+
+      const inviterName = invite.inviter_name ||
+        (invite.inviter_user_id ? getUsernameFromUserId(invite.inviter_user_id) : 'Unknown');
+
+      const newChat: ChatRoom = {
+        room_id: invite.room_id,
+        members: [],
+        isDirect: true,
+        otherUser: invite.inviter_user_id ? {
+          user_id: invite.inviter_user_id,
+          displayname: inviterName,
+        } : undefined,
+        name: inviterName,
+        isInvite: true,
+      };
+
+      console.log('[ChatContext] New invite via sync:', invite.room_id, inviterName);
+      return [...prev, newChat];
+    });
+  }, []);
+
+  useSyncLoop({
+    onInvite: handleInvite,
+    enabled: true,
+  });
+
+  // === Cargar chats al montar ===
   useEffect(() => {
     loadChats();
   }, [loadChats]);
-
-  useEffect(() => {
-    let isMounted = true;
-    let activeIntervalId: ReturnType<typeof setInterval> | null = null;
-    let backgroundIntervalId: ReturnType<typeof setInterval> | null = null;
-
-    // Intervalos configurables
-    const ACTIVE_POLL_INTERVAL = 3000;  // 3 segundos cuando app está activa
-    const BACKGROUND_POLL_INTERVAL = 10000; // 10 segundos cuando app está en background
-
-    const checkForInvites = async () => {
-      if (!isMounted) return;
-      try {
-        const session = await authStorage.getSession();
-        if (!session?.access_token) return;
-
-        // Solo verificar invitaciones, no recargar todo
-        const invitedRooms = await getInvitedRooms({ token: session.access_token }).catch(() => []);
-
-        if (!isMounted) return;
-
-        if (invitedRooms.length > 0) {
-          // Agregar solo las invitaciones nuevas que no estén en la lista
-          setChats(prev => {
-            const existingIds = new Set(prev.map(c => c.room_id));
-
-            // Filter out invites that were rejected
-            const newInvites = invitedRooms.filter(r =>
-              !existingIds.has(r.room_id) && !rejectedInvitesRef.current.has(r.room_id)
-            );
-
-            if (newInvites.length === 0) return prev;
-
-            const inviteChats: ChatRoom[] = newInvites.map(invitedRoom => {
-              const inviterUserId = invitedRoom.inviter_user_id;
-              const inviterName = invitedRoom.inviter_name ||
-                (inviterUserId ? getUsernameFromUserId(inviterUserId) : 'Unknown');
-
-              return {
-                room_id: invitedRoom.room_id,
-                members: [],
-                isDirect: true,
-                otherUser: inviterUserId ? {
-                  user_id: inviterUserId,
-                  displayname: inviterName,
-                } : undefined,
-                name: inviterName,
-                isInvite: true,
-              };
-            });
-
-            console.log('[ChatContext] New invites found:', newInvites.length);
-            return [...prev, ...inviteChats];
-          });
-        }
-      } catch (error) {
-        // Silently ignore polling errors
-      }
-    };
-
-    // Iniciar polling activo (app en foreground)
-    const startActivePolling = () => {
-      console.log('[ChatContext] Starting active polling (3s)');
-      if (backgroundIntervalId) {
-        clearInterval(backgroundIntervalId);
-        backgroundIntervalId = null;
-      }
-      if (!activeIntervalId) {
-        checkForInvites(); // Ejecutar inmediatamente
-        activeIntervalId = setInterval(checkForInvites, ACTIVE_POLL_INTERVAL);
-      }
-    };
-
-    // Iniciar polling pasivo (app en background)
-    const startBackgroundPolling = () => {
-      console.log('[ChatContext] Starting background polling (10s)');
-      if (activeIntervalId) {
-        clearInterval(activeIntervalId);
-        activeIntervalId = null;
-      }
-      if (!backgroundIntervalId) {
-        backgroundIntervalId = setInterval(checkForInvites, BACKGROUND_POLL_INTERVAL);
-      }
-    };
-
-    // Manejar cambios de AppState
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      console.log('[ChatContext] AppState changed to:', nextAppState);
-
-      if (nextAppState === 'active') {
-        // App viene al foreground → polling activo + recargar ahora
-        startActivePolling();
-        checkForInvites(); // Recargar inmediatamente
-      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-        // App va a background → polling pasivo
-        startBackgroundPolling();
-      }
-    };
-
-    // Escuchar cambios de AppState
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-
-    // Iniciar con polling activo por defecto (asumimos que la app arranca activa)
-    startActivePolling();
-
-    const timeoutId = setTimeout(checkForInvites, 1000);
-
-    return () => {
-      isMounted = false;
-      subscription.remove();
-      if (activeIntervalId) clearInterval(activeIntervalId);
-      if (backgroundIntervalId) clearInterval(backgroundIntervalId);
-      clearTimeout(timeoutId);
-    };
-  }, []);
 
   const value: ChatContextType = {
     chats,
@@ -379,6 +309,8 @@ export function ChatProvider({ children }: ChatProviderProps) {
     removeChat,
     acceptInvite,
     rejectInvite: handleRejectInvite,
+    pendingChatId,
+    setPendingChatId,
   };
 
   return (
