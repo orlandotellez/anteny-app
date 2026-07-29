@@ -34,12 +34,20 @@ export const matrixSync = async (options: SyncOptions): Promise<SyncResponse | n
     url.searchParams.set("filter", JSON.stringify(DEFAULT_FILTER));
     url.searchParams.set("set_presence", setPresence);
 
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const TIMEOUT_BUFFER = 10000;
+    const clientTimeout = timeout + TIMEOUT_BUFFER;
+
+    const res = await Promise.race([
+      fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Request timed out after ${clientTimeout}ms`)), clientTimeout)
+      ),
+    ]);
 
     if (!res.ok) {
       const error = await res.json();

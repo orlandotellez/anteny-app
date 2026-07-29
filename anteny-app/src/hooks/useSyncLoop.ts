@@ -1,11 +1,14 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { matrixSync, processSyncResponse } from '@/src/services/matrix/sync';
 import { MatrixEvent } from '@/src/shared/types/matrixEvent';
 import { InvitedRoom } from '@/src/shared/types/matrixRoom';
 import { authStorage } from '../storage/auth-storage';
 
-// Long polling para Matrix /sync
+// En web: long-polling (30s) → instantáneo, el browser mantiene la conexión
+// En móvil: short-polling (2s) → casi instantáneo, React Native maneja mejor requests cortas
+const IS_WEB = Platform.OS === 'web';
+
 interface UseSyncLoopOptions {
   onMessages?: (roomId: string, messages: MatrixEvent[]) => void;
   onInvite?: (invite: InvitedRoom) => void;
@@ -25,8 +28,9 @@ interface UseSyncLoopReturn {
 }
 
 const BASE_RETRY_DELAY = 1000;
-const MAX_RETRY_DELAY = 30000; // Máximo 30s entre reintentos
-const ACTIVE_POLL_TIMEOUT = 30000;
+const MAX_RETRY_DELAY = 10000;
+// En web: timeout largo (long-polling), en móvil: timeout corto (short-polling)
+const ACTIVE_POLL_TIMEOUT = IS_WEB ? 30000 : 2000;
 const BACKGROUND_POLL_TIMEOUT = 5000;
 
 export const useSyncLoop = (options: UseSyncLoopOptions = {}): UseSyncLoopReturn => {

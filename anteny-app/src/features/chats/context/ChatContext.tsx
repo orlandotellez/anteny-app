@@ -260,14 +260,11 @@ export function ChatProvider({ children }: ChatProviderProps) {
     });
   }, []);
 
-  // === SYNC LOOP ÚNICO: invitaciones en TIEMPO REAL vía Matrix /sync ===
+  // === SYNC LOOP: invitaciones en TIEMPO REAL vía Matrix /sync ===
   // El sync loop hace long-polling (30s timeout) al endpoint /sync de Matrix.
   // Cuando el server detecta una invitación nueva, responde al INSTANTE.
-  // Los datos de la invite (invitador, nombre) vienen DIRECTAMENTE del sync,
-  // SIN llamadas HTTP secundarias.
   const handleInvite = useCallback((invite: InvitedRoom) => {
     setChats(prev => {
-      // No agregar si ya existe o fue rechazada
       if (prev.some(c => c.room_id === invite.room_id)) return prev;
       if (rejectedInvitesRef.current.has(invite.room_id)) return prev;
 

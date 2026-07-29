@@ -82,17 +82,26 @@ export const getInvitedRooms = async ({ token, since }: IGetInvitedRoomPayload):
     }
 
     url.searchParams.set("filter", JSON.stringify({
-      rooms: {
-        invite: true,
+      room: {
+        timeline: { limit: 0 },
+        state: { types: ["m.room.member"] },
+        account_data: { limit: 0 },
       },
+      presence: { limit: 0 },
     }));
 
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    // Usamos Promise.race en vez de AbortController (ver sync.ts para la razón)
+    const res = await Promise.race([
+      fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("getInvitedRooms timed out after 15s")), 15000)
+      ),
+    ]);
 
     if (!res.ok) {
       console.error("getInvitedRooms error:", await res.json());
