@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, useSegments } from 'expo-router';
 import { StatusBar, View } from 'react-native';
 import { THEME } from '@/src/shared/lib/theme';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -6,6 +6,8 @@ import { AuthProvider } from '@/src/features/auth/context/AuthContext';
 import { ProfileProvider } from '@/src/features/profile/context/ProfileContext';
 import { ChatProvider } from '@/src/features/chats/context/ChatContext';
 import { AuthGuard } from '@/src/guards/AuthGuard';
+import { Sidebar } from '@/src/shared/components/navigation/Sidebar';
+import { useResponsive } from '@/src/shared/hooks/useResponsive';
 
 type RootRoutes = "(tabs)" | "[chatId]" | "(auth)" | "contacts/profile/index";
 
@@ -35,6 +37,29 @@ const ROOT_STACK: StackConfig[] = [
   },
 ];
 
+function RootContent({ children }: { children: React.ReactNode }) {
+  const { isWide } = useResponsive();
+  const segments = useSegments();
+  const segs = segments as readonly string[];
+
+  // Ocultar sidebar en pantallas de auth
+  const isAuthRoute = segs[0] === '(auth)';
+  const showSidebar = isWide && !isAuthRoute;
+
+  return (
+    <View style={{
+      flex: 1,
+      flexDirection: showSidebar ? 'row' : 'column',
+      backgroundColor: THEME.colors.background,
+    }}>
+      {showSidebar && <Sidebar />}
+      <View style={{ flex: 1 }}>
+        {children}
+      </View>
+    </View>
+  );
+}
+
 export default function RootLayout() {
   return (
     <>
@@ -43,31 +68,32 @@ export default function RootLayout() {
           <AuthGuard>
             <ProfileProvider>
               <ChatProvider>
-                <View style={{ flex: 1, backgroundColor: THEME.colors.secondary }}>
-                  <StatusBar backgroundColor={THEME.colors.secondary} translucent={false} />
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                      contentStyle: {
-                        backgroundColor: THEME.colors.secondary,
-                      },
-                      animation: "none",
-                    }
-                    }
-                  >
-                    {ROOT_STACK.map((route) => (
-                      <Stack.Screen
-                        key={route.name}
-                        name={route.name}
-                        options={{
-                          headerShown: route.headerShown,
-                          title: route.title,
-                          presentation: route.presentation,
-                        }}
-                      />
-                    ))}
-                  </Stack>
-                </View>
+                <RootContent>
+                  <View style={{ flex: 1, backgroundColor: THEME.colors.secondary }}>
+                    <StatusBar backgroundColor={THEME.colors.secondary} translucent={false} />
+                    <Stack
+                      screenOptions={{
+                        headerShown: false,
+                        contentStyle: {
+                          backgroundColor: THEME.colors.secondary,
+                        },
+                        animation: "none",
+                      }}
+                    >
+                      {ROOT_STACK.map((route) => (
+                        <Stack.Screen
+                          key={route.name}
+                          name={route.name}
+                          options={{
+                            headerShown: route.headerShown,
+                            title: route.title,
+                            presentation: route.presentation,
+                          }}
+                        />
+                      ))}
+                    </Stack>
+                  </View>
+                </RootContent>
               </ChatProvider>
             </ProfileProvider>
           </AuthGuard>

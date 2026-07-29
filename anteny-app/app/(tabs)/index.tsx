@@ -1,11 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   FlatList,
   TouchableOpacity,
   Text,
   View,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { THEME } from "@/src/shared/lib/theme";
@@ -17,36 +16,61 @@ import { router } from "expo-router";
 import { ChatRoom } from "@/src/shared/types/matrixRoom";
 import { formatRelativeTime } from "@/src/shared/utils/format";
 import { Filters } from "@/src/features/chats/components/Filters";
+import { ConfirmDialog } from "@/src/shared/components/common/ConfirmDialog";
+import { ChatView } from "@/src/features/[chatId]/components/ChatView";
+import { ProfileView } from "@/src/features/[chatId]/components/ProfileView";
+import { useResponsive } from "@/src/shared/hooks/useResponsive";
+import { IChatData } from "@/src/shared/types/chats";
 import { styles } from "@/src/styles/tabs/index.styles";
 
 type FilterType = "all" | "direct" | "groups" | "invites";
 
 export default function ChatScreen() {
-  const { chats, isLoading, loadChats, removeChat, acceptInvite, rejectInvite } = useChats();
+  const { chats, isLoading, loadChats, removeChat, acceptInvite, rejectInvite, pendingChatId, setPendingChatId } = useChats();
+  const { isWide } = useResponsive();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
 
+  // Split pane: selected chat for wide web layout
+  const [selectedChat, setSelectedChat] = useState<ChatRoom | null>(null);
+
+  // Auto-seleccionar chat pendiente (cuando venimos de contacts en web ancho)
+  useEffect(() => {
+    if (isWide && pendingChatId) {
+      const chat = chats.find(c => c.room_id === pendingChatId);
+      if (chat) {
+        setShowProfile(null);
+        setSelectedChat(chat);
+        setPendingChatId(null);
+      }
+    }
+  }, [isWide, pendingChatId, chats, setPendingChatId]);
+
+  // Split pane: mostrar perfil en vez del chat (inline, sin navegar)
+  const [showProfile, setShowProfile] = useState<{
+    chatId: string;
+    userId: string;
+    displayName: string;
+  } | null>(null);
+
+  // Estado para el ConfirmDialog de eliminar chat
+  const [deleteDialog, setDeleteDialog] = useState<{ roomId: string; chatName: string } | null>(null);
+
+  // Estado para el ConfirmDialog de aceptar invitación (tap)
+  const [acceptInviteDialog, setAcceptInviteDialog] = useState<{ roomId: string; chatName: string } | null>(null);
+
+  // Estado para el ConfirmDialog de rechazar invitación (long press)
+  const [rejectInviteDialog, setRejectInviteDialog] = useState<{ roomId: string; chatName: string } | null>(null);
+
   const handleChatPress = (chat: ChatRoom) => {
     if (chat.isInvite) {
-      Alert.alert(
-        "Aceptar chat",
-        `¿Quieres aceptar el chat con "${chat.name}"?`,
-        [
-          { text: "Cancelar", style: "cancel" },
-          {
-            text: "Aceptar",
-            onPress: async () => {
-              try {
-                await acceptInvite(chat.room_id);
-              } catch (error) {
-                Alert.alert("Error", "No se pudo aceptar la invitación");
-              }
-            },
-          },
-        ]
-      );
+      setAcceptInviteDialog({ roomId: chat.room_id, chatName: chat.name || "Chat" });
+    } else if (isWide) {
+      // En pantalla ancha: seleccionar el chat para mostrar en el panel derecho
+      setShowProfile(null);
+      setSelectedChat(chat);
     } else {
       router.push(`/${chat.room_id}`);
     }
@@ -54,56 +78,39 @@ export default function ChatScreen() {
 
   const handleChatLongPress = (roomId: string, chatName: string, isInvite?: boolean) => {
     if (isInvite) {
-      // Para invitaciones, rechazar o aceptar
-      Alert.alert(
-        "Invitación",
-        `¿Qué quieres hacer con "${chatName}"?`,
-        [
-          { text: "Cancelar", style: "cancel" },
-          {
-            text: "Aceptar",
-            onPress: async () => {
-              try {
-                await acceptInvite(roomId);
-              } catch (error) {
-                Alert.alert("Error", "No se pudo aceptar la invitación");
-              }
-            },
-          },
-          {
-            text: "Rechazar",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                await rejectInvite(roomId);
-              } catch (error) {
-                Alert.alert("Error", "No se pudo rechazar la invitación");
-              }
-            },
-          },
-        ]
-      );
+      // Long press en invitación → mostrar diálogo de rechazar
+      setRejectInviteDialog({ roomId, chatName });
     } else {
-      Alert.alert(
-        "Eliminar chat",
-        `¿Quieres eliminar el chat con "${chatName}"?`,
-        [
-          { text: "Cancelar", style: "cancel" },
-          {
-            text: "Eliminar",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                await removeChat(roomId);
-              } catch (error) {
-                Alert.alert("Error", "No se pudo eliminar el chat");
-              }
-            },
-          },
-        ]
-      );
+      setDeleteDialog({ roomId, chatName });
     }
   };
+
+  const handleSplitPaneProfilePress = (_chatId: string, chatData: IChatData) => {
+    if (chatData.isDirect && chatData.otherUser) {
+      if (isWide) {
+        // En web ancho: mostrar perfil inline en el panel derecho
+        setShowProfile({
+          chatId: _chatId,
+          userId: chatData.otherUser.user_id,
+          displayName: chatData.otherUser.displayname || chatData.name,
+        });
+      } else {
+        // En móvil: navegar a la pantalla de perfil
+        router.push({
+          pathname: "/[chatId]/profile",
+          params: {
+            chatId: _chatId,
+            userId: chatData.otherUser.user_id,
+            displayName: chatData.otherUser.displayname || chatData.name,
+          },
+        });
+      }
+    }
+  };
+
+  const handleProfileBack = useCallback(() => {
+    setShowProfile(null);
+  }, []);
 
   // Filtrar chats
   const filteredChats = useMemo(() => {
@@ -134,8 +141,9 @@ export default function ChatScreen() {
     return chats.filter(chat => chat.isInvite).length;
   }, [chats]);
 
-  return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+  // Content: Chat list (left panel)
+  const chatListPanel = (
+    <View style={{ flex: isWide ? 0 : 1, width: isWide ? '35%' : undefined, minWidth: isWide ? 335 : undefined, maxWidth: isWide ? 420 : undefined, borderRightWidth: isWide ? 1 : 0, borderRightColor: THEME.colors.border }}>
       {/* HEADER */}
       <Header
         onSearchToggle={() => setShowSearch(!showSearch)}
@@ -147,7 +155,7 @@ export default function ChatScreen() {
       {/* FILTROS */}
       <Filters
         activeFilter={activeFilter}
-        setActiveFilter={() => setActiveFilter}
+        setActiveFilter={(f) => setActiveFilter(f as FilterType)}
         inviteCount={inviteCount}
       />
 
@@ -186,11 +194,135 @@ export default function ChatScreen() {
         </View>
       )}
 
-      {/* FAB */}
-      <TouchableOpacity style={styles.fab} onPress={() => router.push("/contacts/new-contact")}>
-        <Ionicons name="add" size={25} color="#002109" />
-        <Ionicons name="people" size={25} color="#002109" />
-      </TouchableOpacity>
+      {/* FAB - only show on mobile */}
+      {!isWide && (
+        <TouchableOpacity style={styles.fab} onPress={() => router.push("/contacts/new-contact")}>
+          <Ionicons name="add" size={25} color="#002109" />
+          <Ionicons name="people" size={25} color="#002109" />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  // Content: Chat detail (right panel for wide web)
+  const chatDetailPanel = (
+    <View style={{ flex: 1, backgroundColor: THEME.colors.background }}>
+      {showProfile ? (
+        <ProfileView
+          key={showProfile.chatId}
+          displayName={showProfile.displayName}
+          userId={showProfile.userId}
+          onBack={handleProfileBack}
+        />
+      ) : selectedChat ? (
+        <ChatView
+          key={selectedChat.room_id}
+          chatId={selectedChat.room_id}
+          onProfilePress={handleSplitPaneProfilePress}
+        />
+      ) : (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <Ionicons name="chatbubbles-outline" size={64} color={THEME.colors.border} />
+          <Text style={{ color: THEME.colors.text_opacity, fontSize: 18, marginTop: 16, fontWeight: "600" }}>
+            Selecciona un chat
+          </Text>
+          <Text style={{ color: THEME.colors.muted, fontSize: 14, marginTop: 8 }}>
+            Elige una conversación para empezar
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      {isWide ? (
+        // === SPLIT PANE: Chat list (left) + Chat detail (right) ===
+        <View style={{ flex: 1, flexDirection: "row" }}>
+          {chatListPanel}
+          {chatDetailPanel}
+        </View>
+      ) : (
+        // === MOBILE: Only chat list with navigation ===
+        chatListPanel
+      )}
+
+      {/* ConfirmDialog: Eliminar chat (long press) */}
+      <ConfirmDialog
+        open={deleteDialog !== null}
+        title="Eliminar chat"
+        message={deleteDialog ? `¿Quieres eliminar el chat con "${deleteDialog.chatName}"?` : ''}
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        destructive
+        onConfirm={async () => {
+          if (!deleteDialog) return;
+          try {
+            await removeChat(deleteDialog.roomId);
+            // Clear selected chat if it was the deleted one
+            if (selectedChat?.room_id === deleteDialog.roomId) {
+              setSelectedChat(null);
+              setShowProfile(null);
+            }
+          } catch {
+            // Error manejado internamente
+          }
+          setDeleteDialog(null);
+        }}
+        onCancel={() => setDeleteDialog(null)}
+      />
+
+      {/* ConfirmDialog: Aceptar invitación (tap) */}
+      <ConfirmDialog
+        open={acceptInviteDialog !== null}
+        title="Aceptar chat"
+        message={acceptInviteDialog ? `¿Quieres aceptar el chat con "${acceptInviteDialog.chatName}"?` : ''}
+        confirmLabel="Aceptar"
+        cancelLabel="Cancelar"
+        onConfirm={async () => {
+          if (!acceptInviteDialog) return;
+          const { roomId } = acceptInviteDialog;
+          setAcceptInviteDialog(null);
+          try {
+            await acceptInvite(roomId);
+            if (isWide) {
+              // En split pane, seleccionar el chat recién aceptado
+              const accepted = chats.find(c => c.room_id === roomId);
+              if (accepted) setSelectedChat(accepted);
+            } else {
+              router.push(`/${roomId}`);
+            }
+          } catch {
+            // Error manejado internamente
+          }
+        }}
+        onCancel={() => setAcceptInviteDialog(null)}
+      />
+
+      {/* ConfirmDialog: Rechazar invitación (long press) */}
+      <ConfirmDialog
+        open={rejectInviteDialog !== null}
+        title="Rechazar invitación"
+        message={rejectInviteDialog ? `¿Quieres rechazar la invitación de "${rejectInviteDialog.chatName}"?` : ''}
+        confirmLabel="Rechazar"
+        cancelLabel="Cancelar"
+        destructive
+        onConfirm={async () => {
+          if (!rejectInviteDialog) return;
+          const { roomId } = rejectInviteDialog;
+          setRejectInviteDialog(null);
+          try {
+            await rejectInvite(roomId);
+            if (selectedChat?.room_id === roomId) {
+              setSelectedChat(null);
+              setShowProfile(null);
+            }
+          } catch {
+            // Error manejado internamente
+          }
+        }}
+        onCancel={() => setRejectInviteDialog(null)}
+      />
     </SafeAreaView>
   );
 }
