@@ -11,6 +11,7 @@ import { Header } from "@/src/features/contacts/components/index/Header";
 import { router } from "expo-router";
 import { ActionButton } from "@/src/features/contacts/components/index/ActionButton";
 import { useChats } from "@/src/features/chats/context/ChatContext";
+import { useResponsive } from "@/src/shared/hooks/useResponsive";
 import { styles } from "@/src/styles/tabs/contacts.styles";
 
 const actions: ActionItem[] = [
@@ -19,13 +20,20 @@ const actions: ActionItem[] = [
 ]
 
 export default function ContactScreen() {
-  const { chats } = useChats();
+  const { chats, setPendingChatId } = useChats();
+  const { isWide } = useResponsive();
 
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleContactPress = (roomId: string) => {
-    router.push(`/${roomId}`);
+    if (isWide) {
+      // En web ancho: ir al tab de chats y abrir el chat en el split pane
+      setPendingChatId(roomId);
+      router.replace('/(tabs)');
+    } else {
+      router.push(`/${roomId}`);
+    }
   };
 
   // Filtrar solo DMs (chats directos)

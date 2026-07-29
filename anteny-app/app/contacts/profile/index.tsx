@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/src/features/auth/context/AuthContext";
 import { getUsernameFromUserId } from "@/src/shared/utils/format";
 import { useChats } from "@/src/features/chats/context/ChatContext";
+import { useResponsive } from "@/src/shared/hooks/useResponsive";
 import { Header } from "@/src/features/[chatId]/components/profile/Header";
 import { AvatarProfile } from "@/src/features/contacts/components/profile/AvatarProfile";
 import { Info } from "@/src/features/contacts/components/profile/Info";
@@ -23,7 +24,8 @@ export default function ContactProfileScreen() {
   }>();
 
   const { session } = useAuth();
-  const { loadChats } = useChats();
+  const { loadChats, setPendingChatId } = useChats();
+  const { isWide } = useResponsive();
 
   const hasExistingChat = hasChat === "true" && !!chatId;
 
@@ -60,7 +62,12 @@ export default function ContactProfileScreen() {
   // IR AL CHAT
   const handleGoToChat = () => {
     if (chatId) {
-      router.push(`/${chatId}`);
+      if (isWide) {
+        setPendingChatId(chatId);
+        router.replace('/(tabs)');
+      } else {
+        router.push(`/${chatId}`);
+      }
     }
   };
 
