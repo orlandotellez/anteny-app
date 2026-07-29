@@ -1,23 +1,23 @@
-import * as SecureStore from 'expo-secure-store';
+import { secureStorage } from './storage-adapter';
 import { MatrixSession } from '../shared/types/matrixSession';
 
 const SESSION_KEY = "matrix_session"
 
 export const authStorage = {
-  // Guarda la sesión completa de Matrix en SecureStore
+  // Guarda la sesión completa de Matrix en secureStorage
   async setSession(session: MatrixSession): Promise<void> {
     try {
-      await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session))
+      await secureStorage.setItemAsync(SESSION_KEY, JSON.stringify(session))
     } catch (error) {
       console.error('Error guardando sesión:', error);
       throw error;
     }
   },
 
-  // Recupera la sesión completa de Matrix desde SecureStore
+  // Recupera la sesión completa de Matrix desde secureStorage
   async getSession(): Promise<MatrixSession | null> {
     try {
-      const session = await SecureStore.getItemAsync(SESSION_KEY)
+      const session = await secureStorage.getItemAsync(SESSION_KEY)
 
       return session ? JSON.parse(session) : null;
     } catch (error) {
@@ -47,7 +47,7 @@ export const authStorage = {
   // Limpia toda la sesión (logout)
   async clearSession(): Promise<void> {
     try {
-      await SecureStore.deleteItemAsync(SESSION_KEY);
+      await secureStorage.deleteItemAsync(SESSION_KEY);
     } catch (error) {
       console.error('Error borrando sesión:', error);
       throw error;
