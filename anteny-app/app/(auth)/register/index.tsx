@@ -29,6 +29,7 @@ export default function RegisterScreen() {
     username: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -58,6 +59,14 @@ export default function RegisterScreen() {
   async function handleRegister() {
     setLoading(true);
     setGlobalError(null);
+
+    // Validar que las contraseñas coincidan
+    if (form.password !== form.confirmPassword) {
+      setGlobalError("Las contraseñas no coinciden");
+      setLoading(false);
+      return;
+    }
+
     try {
       // Registrar usuario en Matrix
       const session = await registerUser({ username: form.username, password: form.password });
